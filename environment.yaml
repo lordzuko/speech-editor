@@ -8,5 +8,24 @@ dependencies:
   - conda-build
   - cxx-compiler
   - pip
+  - librosa=0.7.2
+  - numba=0.48
+  - numpy=1.23.0
+  - dask
+  - pynini==2.1.4
   - pip:
-    - streamlit
+      - g2p-en==2.1.0
+      - inflect==4.1.0
+      - matplotlib==3.2.2
+      - pypinyin==0.39.0
+      - pyworld==0.3.3
+      - PyYAML==5.4.1
+      - streamlit
+      - scikit-learn==0.24.1
+      - scipy==1.5.0
+      - soundfile==0.10.3.post1
+      - tgt==1.4.4
+      - torch==1.7.0
+      - tqdm==4.46.1
+      - unidecode==1.1.1
+      - pillow==9.5.0
