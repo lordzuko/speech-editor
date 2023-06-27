@@ -29,3 +29,4 @@ dependencies:
       - tqdm==4.46.1
       - unidecode==1.1.1
       - pillow==9.5.0
+      - protobuf==3.20.*
