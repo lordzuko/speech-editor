@@ -30,3 +30,6 @@ dependencies:
       - unidecode==1.1.1
       - pillow==9.5.0
       - protobuf==3.20.*
+      - pymongo[srv]==3.11.0
+      - mongoengine==0.23.0
+      - streamlit-tags==1.2.8

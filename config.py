@@ -6,7 +6,7 @@ from fs2.controlled_synthesis import read_lexicon
 config = yaml.load(
     open("conf/config.yaml", "r"), Loader=yaml.FullLoader
 )
-
+db_fp = config["db"]["fp"]
 class Args:
     restore_step = config["inference_config"]["restore_step"]
     mode = config["inference_config"]["mode"]

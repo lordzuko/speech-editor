@@ -8,3 +8,5 @@ inference_config:
     energy_control: 1.0
     duration_control: 1.0
     speaker_id: 0
+db:
+    fp: "/work/tc046/tc046/lordzuko/work/speech-editor/conf/db.jsonl"

@@ -15,20 +15,22 @@ st.set_page_config(
 
 def main():
 
-    if not get_state(st, "model"):
-        # Get model
-        print("Loading Model...")
-        init_session_state(st, "model", get_model(args, configs, device, train=False))
-        print("Model Loaded")
-    
-    if not get_state(st, "vocoder"):
-        # Load vocoder
-        print("Loading Vocoder...")
-        init_session_state(st, "vocoder", get_vocoder(model_config, device))
-        print("Vocoder Loaded")
 
-    if not get_state(st, "sampling_rate"):
-        init_session_state(st, "sampling_rate", preprocess_config["preprocessing"]["audio"]["sampling_rate"])
+    with st.spinner("Loading and setting up TTS model..."):
+        if not get_state(st, "model"):
+            # Get model
+            print("Loading Model...")
+            init_session_state(st, "model", get_model(args, configs, device, train=False))
+            print("Model Loaded")
+        
+        if not get_state(st, "vocoder"):
+            # Load vocoder
+            print("Loading Vocoder...")
+            init_session_state(st, "vocoder", get_vocoder(model_config, device))
+            print("Vocoder Loaded")
+
+        if not get_state(st, "sampling_rate"):
+            init_session_state(st, "sampling_rate", preprocess_config["preprocessing"]["audio"]["sampling_rate"])
     
     ui()
 

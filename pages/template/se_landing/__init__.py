@@ -5,7 +5,6 @@ from utils.audio import get_audio_bytes
 from utils.session import get_state, init_session_state
 from fs2.controlled_synthesis import  preprocess_single, synthesize
 from config import lexicon, g2p, args, preprocess_config, configs
-from utils.ui_utils import *
 
 
 def se_ui():
