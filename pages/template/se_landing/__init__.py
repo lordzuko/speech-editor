@@ -6,8 +6,28 @@ from utils.session import get_state, init_session_state
 from fs2.controlled_synthesis import  preprocess_single, synthesize
 from config import lexicon, g2p, args, preprocess_config, configs
 
+from fs2.utils.model import get_model, get_vocoder
+from config import args, configs, device, model_config, preprocess_config
+
 
 def se_ui():
+
+    with st.spinner("Loading and setting up TTS model..."):
+        if not get_state(st, "model"):
+            # Get model
+            print("Loading Model...")
+            init_session_state(st, "model", get_model(args, configs, device, train=False))
+            print("Model Loaded")
+        
+        if not get_state(st, "vocoder"):
+            # Load vocoder
+            print("Loading Vocoder...")
+            init_session_state(st, "vocoder", get_vocoder(model_config, device))
+            print("Vocoder Loaded")
+
+        if not get_state(st, "sampling_rate"):
+            init_session_state(st, "sampling_rate", preprocess_config["preprocessing"]["audio"]["sampling_rate"])
+    
 
     if get_state(st, "model"):
         #st.sidebar.button("Logout", on_click=logout)

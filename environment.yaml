@@ -33,3 +33,4 @@ dependencies:
       - pymongo[srv]==3.11.0
       - mongoengine==0.23.0
       - streamlit-tags==1.2.8
+      - python-dotenv

@@ -6,20 +6,21 @@ from utils.models import Users
 from utils.text import get_random_string
 
 
-def validate_login(email, password):
-    fetched_data = Users.objects(user_email=email)
+def validate_login(username, password):
+    fetched_data = Users.objects(username=username)
+    
     if fetched_data:
         fetched_data = fetched_data[0]
-
+        
         if check_hashes(password, fetched_data["password"]):
             return dict(fetched_data.to_mongo())
 
     return {}
 
 
-def update_password(email, new_password=""):
+def update_password(username, new_password=""):
 
-    fetched_data = Users.objects(user_email=email)
+    fetched_data = Users.objects(username=username)
     if fetched_data:
         fetched_data = fetched_data[0]
 
@@ -39,8 +40,8 @@ def update_password(email, new_password=""):
     return False
 
 
-def delete_account(email):
-    fetched_data = Users.objects(user_email=email)
+def delete_account(username):
+    fetched_data = Users.objects(username=username)
     if fetched_data:
         fetched_data = fetched_data[0]
 

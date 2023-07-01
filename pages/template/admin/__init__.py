@@ -7,6 +7,7 @@ from utils import make_hashes
 from utils.db import delete_account, update_password, fetch_annotators
 from utils.models import Users, Projects
 from streamlit_tags import st_tags
+from pages.template.annotator import annotator_landing
 
 def admin_landing():
     st.sidebar.header("Admin Dashboard")
@@ -30,7 +31,7 @@ def admin_landing():
                 submit_button = st.form_submit_button(label="Register")
 
             if submit_button:
-                fetched_data = Users.objects(user_email=data["username"])
+                fetched_data = Users.objects(username=data["username"])
                 if fetched_data:
                     fetched_data = fetched_data[0]
 
@@ -50,7 +51,7 @@ def admin_landing():
             st.subheader("Change Password")
 
             with st.form(key="change_password", clear_on_submit=True):
-                user_email = st.text_input("Email")
+                username = st.text_input("Username")
                 new_password = st.text_input("New Password", type="password")
                 confirm_new_password = st.text_input("Confirm New Password", type="password")
 
@@ -58,7 +59,7 @@ def admin_landing():
             
             if submit_button:
                 if new_password == confirm_new_password:
-                    if update_password(user_email, new_password):
+                    if update_password(username, new_password):
                         st.success("Password Updated Successfully")
                     else:
                         st.warning("Account is not registered yet!")
@@ -138,7 +139,7 @@ def admin_landing():
                 submit_button = st.form_submit_button(label="Create Project")
 
             if submit_button:
-                fetched_data = Users.objects(user_email=data["project_id"])
+                fetched_data = Projects.objects(project_id=data["project_id"])
                 if fetched_data:
                     fetched_data = fetched_data[0]
 

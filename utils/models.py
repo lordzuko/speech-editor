@@ -1,6 +1,6 @@
 import datetime
 
-from ..constants import TAGGING_STATUS, USER_TYPES
+from constants import TAGGING_STATUS, USER_TYPES
 from mongoengine import (BooleanField, DateTimeField, DictField, Document,
                          EmailField, ListField, StringField)
 

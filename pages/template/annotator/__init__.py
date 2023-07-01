@@ -1,7 +1,7 @@
 from os import write
 
 import streamlit as st
-from pages.template.se_landing import, speech_editor
+from pages.template.se_landing import se_ui
 from streamlit.proto.Selectbox_pb2 import Selectbox
 from utils.db import update_password
 from utils.models import Projects
@@ -9,7 +9,7 @@ from utils.models import Projects
 from .queries import fetch_available_projects
 
 annotation_project = {
-    "se_project": speech_editor,
+    "se": se_ui,
 }
 
 def annotator_landing():
@@ -30,7 +30,7 @@ def annotator_landing():
         if submit_button:
             if new_password == confirm_new_password:
                 if update_password(
-                    st.session_state["login"]["user_email"], new_password
+                    st.session_state["login"]["username"], new_password
                 ):
                     st.success("Password Updated Successfully")
                 else:
@@ -45,7 +45,6 @@ def annotator_landing():
                 [
                     "",
                     "Assigned Annotation Tasks",
-                    "Review Annotation Tasks",
                     "Check Tagging Stats",
                 ],
             )
@@ -55,36 +54,18 @@ def annotator_landing():
             )
         if annotation_task == "Assigned Annotation Tasks":
             st.markdown("### Select annotation project from left sidebar")
-            projects = fetch_available_projects(st.session_state["login"]["user_email"])
+            projects = fetch_available_projects(st.session_state["login"]["username"])
             project_mapping = {x["project_name"]: x["project_id"] for x in projects}
             project_names = [x["project_name"] for x in projects]
             selected_project = st.sidebar.selectbox(
                 "Select Annotation Project", [""] + project_names
             )
             pid = project_mapping.get(selected_project, None)
-            if pid == "se_project":
+            if pid == "se":
                 annotation_project.get(pid)()
         elif annotation_task == "Check Tagging Stats":
             st.markdown("### Feature Coming Soon!")
 
-        elif annotation_task == "Review Annotation Tasks":
-            st.markdown("### Select annotation project to review from left sidebar")
-            projects = fetch_available_projects(st.session_state["login"]["user_email"])
-            project_mapping = {x["project_name"]: x["project_id"] for x in projects}
-            project_names = [x["project_name"] for x in projects]
-            selected_project = st.sidebar.selectbox(
-                "Select Annotation Project", [""] + project_names
-            )
-            pid = project_mapping.get(selected_project, None)
-            if pid == "essay_qa_segregation":
-                review_project.get(pid)()
-            elif pid == "dean_essay_categorization":
-                print("here in dean review")
-                review_project.get(pid)()
-                # initialize_dean_collection()
-            elif pid == "sop_classification":
-                print("here in sop tagging review")
-                review_project.get(pid)()
         else:
             st.markdown("### Please select annotation project from the left sidebar")
     else:

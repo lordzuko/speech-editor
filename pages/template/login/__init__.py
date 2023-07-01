@@ -2,12 +2,12 @@ import streamlit as st
 
 from utils.db import validate_login
 from utils.session import get_state
-from pages.template.se_landing import se_landing
+from pages.template.annotator import annotator_landing
 from pages.template.admin import admin_landing
 
 def logout():
     st.session_state["login"] = {}
-    st.experimental_rerun()
+#     st.experimental_rerun()
 
 def login_screen():
     if get_state(st, "login"):
@@ -41,5 +41,5 @@ def login_screen():
         if st.session_state["login"]["user_type"] == "ADMIN":
             admin_landing()
         elif st.session_state["login"]["user_type"] == "ANNOTATOR":
-            se_landing()
+            annotator_landing()
 

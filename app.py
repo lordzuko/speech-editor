@@ -1,10 +1,14 @@
 import torch
 import yaml
+
+import certifi
+from mongoengine import connect
+from pymongo import ReadPreference
+
 import streamlit as st
-from ui import ui
+from pages.template.login import login_screen
 from utils.session import init_session_state, get_state
-from fs2.utils.model import get_model, get_vocoder
-from config import args, configs, device, model_config, preprocess_config
+from config import DB, DB_HOST, USERNAME, PASSWORD
 
 st.set_page_config(
     page_title="Speech Editor",
@@ -13,26 +17,27 @@ st.set_page_config(
     initial_sidebar_state="auto",
 )
 
+if not get_state(st, "MONGO_CONNECTION"):
+    init_session_state(st, "MONGO_CONNECTION", connect(
+        host=f"mongodb+srv://{DB_HOST}/{DB}?retryWrites=true&w=majority&ssl=true",
+        # host=f"mongodb://{APP_HOST}/{APP_DB}",
+        username=USERNAME,
+        password=PASSWORD,
+        authentication_source="admin",
+        read_preference=ReadPreference.PRIMARY_PREFERRED,
+        # maxpoolsize=MONGODB_POOL_SIZE,
+        tlsCAFile=certifi.where(),
+    ))
+
+    try:
+
+        print(get_state(st, "MONGO_CONNECTION").server_info())  # Forces a call.
+    except Exception:
+        raise Exception("mongo server is down.")
+
+
 def main():
-
-
-    with st.spinner("Loading and setting up TTS model..."):
-        if not get_state(st, "model"):
-            # Get model
-            print("Loading Model...")
-            init_session_state(st, "model", get_model(args, configs, device, train=False))
-            print("Model Loaded")
-        
-        if not get_state(st, "vocoder"):
-            # Load vocoder
-            print("Loading Vocoder...")
-            init_session_state(st, "vocoder", get_vocoder(model_config, device))
-            print("Vocoder Loaded")
-
-        if not get_state(st, "sampling_rate"):
-            init_session_state(st, "sampling_rate", preprocess_config["preprocessing"]["audio"]["sampling_rate"])
-    
-    ui()
+    login_screen()
 
 
 if __name__ == "__main__":
