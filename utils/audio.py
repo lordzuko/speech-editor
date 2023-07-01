@@ -18,3 +18,4 @@ def get_audio_bytes(audio_bytes, sample_rate):
 
     # audio_tag = f'<audio autoplay="true" src="data:audio/wav;base64,{audio_base64}">'
     # st.markdown(audio_tag, unsafe_allow_html=True)
+    return audio_base64

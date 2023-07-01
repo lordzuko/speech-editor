@@ -1,12 +1,26 @@
+import os
 import yaml
 import torch
 from g2p_en import G2p
 from fs2.controlled_synthesis import read_lexicon
 
+from dotenv import load_dotenv
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+ENV_PATH = os.path.join(BASE_DIR, ".env")
+load_dotenv(dotenv_path=ENV_PATH)
+
+
+DEBUG = bool(os.environ["DEBUG"])
+
+DB = os.environ["DB"]
+DB_HOST = os.environ["DB_HOST"]
+USERNAME = "" if os.environ["USERNAME"] == "" else os.environ["USERNAME"]
+PASSWORD = "" if os.environ["PASSWORD"] == "" else os.environ["PASSWORD"]
+
 config = yaml.load(
     open("conf/config.yaml", "r"), Loader=yaml.FullLoader
 )
-
+db_fp = config["db"]["fp"]
 class Args:
     restore_step = config["inference_config"]["restore_step"]
     mode = config["inference_config"]["mode"]
