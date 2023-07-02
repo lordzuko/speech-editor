@@ -53,7 +53,7 @@ def annotator_landing():
                 "Annotation", ["", "Assigned Annotation Tasks", "Check Tagging Stats"]
             )
         if annotation_task == "Assigned Annotation Tasks":
-            st.markdown("### Select annotation project from left sidebar")
+            # st.markdown("### Select annotation project from left sidebar")
             projects = fetch_available_projects(st.session_state["login"]["username"])
             project_mapping = {x["project_name"]: x["project_id"] for x in projects}
             project_names = [x["project_name"] for x in projects]
