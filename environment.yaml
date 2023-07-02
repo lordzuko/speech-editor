@@ -34,3 +34,5 @@ dependencies:
       - mongoengine==0.23.0
       - streamlit-tags==1.2.8
       - python-dotenv
+      - st_row_buttons
+      - st_btn_select
