@@ -1,7 +1,7 @@
 import io
 import base64
 import soundfile
-
+import streamlit as st
 
 def get_audio_bytes(audio_bytes, sample_rate):
     """
@@ -19,3 +19,13 @@ def get_audio_bytes(audio_bytes, sample_rate):
     # audio_tag = f'<audio autoplay="true" src="data:audio/wav;base64,{audio_base64}">'
     # st.markdown(audio_tag, unsafe_allow_html=True)
     return audio_base64
+
+def save_audio(audio_bytes, sample_rate, file_path):
+    """
+    Save the file to a filepath
+    """
+    try:
+        soundfile.write(file_path, audio_bytes, samplerate=sample_rate, format="WAV")
+    except Exception as e:
+        st.error("File not saved")
+        print(e)

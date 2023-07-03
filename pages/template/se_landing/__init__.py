@@ -3,16 +3,16 @@ import torch
 import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
-from utils.audio import get_audio_bytes
+from utils.audio import save_audio
 from utils.session import get_state, init_session_state
 from fs2.controlled_synthesis import  preprocess_single, synthesize, preprocess_english
 from config import lexicon, g2p, args, preprocess_config, configs
 
-from st_row_buttons import st_row_buttons
-from st_btn_select import st_btn_select
+# from st_row_buttons import st_row_buttons
+# from st_btn_select import st_btn_select
 from fs2.utils.model import get_model, get_vocoder
 from fs2.text import sequence_to_text
-from config import args, configs, device, model_config, preprocess_config
+from config import args, configs, device, model_config, preprocess_config, DEBUG
 
 from utils.models import SEData
 
@@ -126,50 +126,77 @@ def tag_ui(suggestions, values):
     words_to_edit = st_tags(
         label="Add words to edit",
         text="enter word for suggestion and press enter",
-        value=[],
+        value=values,
         suggestions=suggestions)
     return words_to_edit
 
-def setup_sliders():
+def setup_sliders(column):
         
-        cur_word_idx = st.session_state["app"]["current_word_idx"]
+    cur_word_idx = st.session_state["app"]["current_word_idx"]
 
+    col1, col2, col3 = st.columns([2, 2, 2])
+    with col1:
         duration_control = st.slider("Speed Scale", 
                                             value=float(st.session_state["app"]["fine_control"]["duration"][0][cur_word_idx]), 
                                             min_value=0.0, 
                                             max_value=3.0, 
                                             help="Speech speed. Larger value become slow")
-        st.session_state["app"]["fine_control"]["duration"][0][cur_word_idx] = duration_control
         
+    with col2:
         f0_control = st.slider("Pitch Scale", 
                                     value=float(st.session_state["app"]["fine_control"]["f0"][0][cur_word_idx]), 
                                     min_value=0.0, 
                                     max_value=3.0)
         
-        st.session_state["app"]["fine_control"]["f0"][0][cur_word_idx] = f0_control
-
+    
+    with col3:
         energy_control = st.slider("Energy Scale", 
-                                            value=float(st.session_state["app"]["fine_control"]["duration"][0][cur_word_idx]), 
-                                            min_value=0.0, 
-                                            max_value=3.0)
+                                        value=float(st.session_state["app"]["fine_control"]["energy"][0][cur_word_idx]), 
+                                        min_value=0.0, 
+                                        max_value=3.0)
 
+    with st.form("Control Variance"):
+        
+        word = st.session_state["app"]["current_word"]
+        
+        st.markdown(f"Currently Editing: `{word}` at index `{cur_word_idx}`")
         
         
-        st.session_state["app"]["fine_control"]["energy"][0][cur_word_idx] = energy_control
         
+        
+
+        submitted = st.form_submit_button("Synthesize Selected")       
+        if submitted:
+            st.session_state["app"]["fine_control"]["duration"][0][cur_word_idx] = duration_control
+            st.session_state["app"]["fine_control"]["f0"][0][cur_word_idx] = f0_control
+            st.session_state["app"]["fine_control"]["energy"][0][cur_word_idx] = energy_control
+            
+            with column:
+                # if DEBUG:
+                #     st.json(st.session_state["app"])
+                setup_speech_edited()
+                with st.expander("Waveform visualization"):
+                    fig = plt.figure()
+                    ax1 = fig.add_subplot(1, 1, 1)
+                    ax1.specgram(st.session_state["app"]["edited"]["wav"],
+                                    Fs=st.session_state["sampling_rate"])
+                    st.pyplot(fig)
+
+
 
         
 def setup_speech_unedited():
     
     if "unedited" not in st.session_state["app"]:
         st.session_state["app"]["unedited"] = {}
-        st.session_state["app"]["unedited"]["synthesiszed"] = False
+        st.session_state["app"]["unedited"]["synthesized"] = False
     
     # if "f0" not in st.session_state["app"]["unedited"]:
-    if not st.session_state["app"]["unedited"]["synthesiszed"]:
-        st.session_state["app"]["unedited"]["synthesiszed"] =  st.button("Synth!", 
-                                                                         disabled=st.session_state["app"]["unedited"]["synthesiszed"])
-        if st.session_state["app"]["unedited"]["synthesiszed"]:
+    if not st.session_state["app"]["unedited"]["synthesized"]:
+        st.session_state["app"]["unedited"]["synthesized"] =  st.button("Synth!", 
+                                                        disabled=st.session_state["app"]["unedited"]["synthesized"])
+        
+        if st.session_state["app"]["unedited"]["synthesized"]:
             print(",asdf", st.session_state["app"]["unedited"])
             with torch.no_grad():
 
@@ -194,40 +221,71 @@ def setup_speech_unedited():
         st.markdown("Original:")
         st.audio(st.session_state["app"]["unedited"]["wav"],
                             sample_rate=st.session_state["sampling_rate"])
+        
+        with st.expander("Waveform visualization"):
+            fig = plt.figure()
+            ax1 = fig.add_subplot(1, 1, 1)
+    #         ax1.plot(wavdata)
+
+    #         ax2 = fig.add_subplot(2, 1, 2)
+            ax1.specgram(st.session_state["app"]["unedited"]["wav"],
+                            Fs=st.session_state["sampling_rate"])
+            st.pyplot(fig)
+
 
 
 def setup_speech_edited():
     if "edited" not in st.session_state["app"]:
         st.session_state["app"]["edited"] = {}
+        st.session_state["app"]["unedited"]["synthesized"] = False
 
+    control_values, batchs = preprocess_single(st.session_state["app"]["text"], 
+                                                lexicon, 
+                                                g2p, 
+                                                args, 
+                                                preprocess_config, 
+                                                st.session_state["app"]["fine_control"])
     
+    wavdata = synthesize(st.session_state["model"], 
+                        configs, 
+                        st.session_state["vocoder"], 
+                        batchs, 
+                        control_values)
 
-    if st.button("Synthesize Edited?"):
-        control_values, batchs = preprocess_single(st.session_state["app"]["text"], 
-                                                   lexicon, 
-                                                   g2p, 
-                                                   args, 
-                                                   preprocess_config, 
-                                                   st.session_state["app"]["fine_control"])
-        
-        wavdata = synthesize(st.session_state["model"], 
-                            configs, 
-                            st.session_state["vocoder"], 
-                            batchs, 
-                            control_values)
+    st.markdown("Edited:")
+    st.session_state["app"]["edited"]["wav"] = wavdata
+    st.audio(st.session_state["app"]["edited"]["wav"],
+                sample_rate=st.session_state["sampling_rate"])
 
-        st.markdown("Edited:")
-        st.session_state["app"]["edited"]["wav"] = wavdata
-        st.audio(st.session_state["app"]["edited"]["wav"],
-                    sample_rate=st.session_state["sampling_rate"])
+def save():
 
+    save_audio(st.session_state["app"]["unedited"]["wav"], 
+               st.session_state["sampling_rate"], 
+               f"data/unedited/{st.session_state['app']['filename']}.wav")
+    save_audio(st.session_state["app"]["edited"]["wav"], 
+               st.session_state["sampling_rate"], 
+               f"data/edited/{st.session_state['app']['filename']}.wav")
+    
+def reset():
+    st.session_state["app"] = {} # this will be used to track the speech data
+    st.session_state["app"]["edit_next"] = True
+    st.session_state["app"]["begin_processing"] = False
+    st.experimental_rerun()
 
 def se_edit_widget():
+
+    if st.button("Made a mistake reset?"):
+        reset()
+
     words_to_edit = []
     
     if st.session_state["app"]["edit_next"]:
-        st.session_state["app"]["text"] = st.text_area("Text", value="", height=100, max_chars=2048)
-        
+        with st.form("Enter details:"):
+            st.session_state["app"]["text"] = st.text_area("Text", value="", height=100, max_chars=2048)
+            st.session_state["app"]["filename"] = st.text_input("Filename")
+            submitted = st.form_submit_button("Submit")
+                
+                
     if st.session_state["app"].get("text"):
         st.session_state["app"]["begin_processing"] = True
         print("beging: ", st.session_state["app"]["begin_processing"]) 
@@ -244,10 +302,12 @@ def se_edit_widget():
             out = preprocess_english(text,lexicon, g2p, preprocess_config)
             texts, words, idxs = np.array([out[0]]), out[1], out[2]
 
-            st.markdown(texts)
+            # st.markdown(texts)
             setup_data(texts, words, idxs)
-            st.markdown(words)
-            st.markdown(idxs)
+            # st.markdown(words)
+            # st.markdown(idxs)
+            st.markdown(f"Text: {st.session_state['app']['text']}")
+            st.markdown(f"Filename: {st.session_state['app']['filename']}")
 
             if "fine_control" not in st.session_state["app"]:
                 st.session_state["app"]["fine_control"] = {
@@ -257,36 +317,55 @@ def se_edit_widget():
                 }
             # setup_data
             setup_data(texts, words, idxs)
+            
             if not st.session_state["app"].get("suggestions"):
                 suggestions = [f"{w}-{i}" for i,w in enumerate(st.session_state["app"]["w"])]
                 st.session_state["app"]["suggestions"] = suggestions
-            if not st.session_state["app"].get("words_to_edit"):
-                words_to_edit = tag_ui(st.session_state["app"]["suggestions"], values=[])
+
+            if "words_to_edit" not in st.session_state["app"]:
+                st.markdown("init tag ui")
+                st.session_state["app"]["words_to_edit"] = tag_ui(st.session_state["app"]["suggestions"], values=st.session_state["app"]["suggestions"])
                 
             else:
+                st.session_state["app"]["words_to_edit"] = tag_ui(st.session_state["app"]["suggestions"], values=st.session_state["app"]["words_to_edit"])
+            # if "words_to_edit" in st.session_state["app"]:
+            #     st.markdown("post tag ui")
+            #     st.session_state["app"]["words_to_edit"] = tag_ui(st.session_state["app"]["suggestions"], 
+            #                            st.session_state["app"]["words_to_edit"])
+            
+            col1, col2 = st.columns([2, 2])
+            with col1:
+                setup_speech_unedited()
 
-                words_to_edit = tag_ui(st.session_state["app"]["suggestions"], 
-                                       st.session_state["app"]["words_to_edit"])
-            if words_to_edit:
-                    current_word = words_to_edit.pop(0)
+            if st.session_state["app"]["words_to_edit"]:
+                current_word = st.session_state["app"]["words_to_edit"][0]
 
-                    word, idx = current_word.split("-")
-                    
+                word, idx = current_word.split("-")
+                
 
-                    col1, col2 = st.columns([2, 2])
-                    # st.session_state["app"]["next_word"] = False
-                    with col1:
-                        setup_speech_unedited()
-                        
-                        if "unedited" in st.session_state["app"]:
-                            st.markdown(f"Currently Editing: `{word}` at index `{idx}`")
-                            st.session_state["app"]["current_word"] = current_word
-                            st.session_state["app"]["current_word_idx"] = int(idx)
-                            setup_sliders()
-                    with col2:
-                        st.json(st.session_state["app"])
-                        setup_speech_edited()
-    
+                
+                # st.session_state["app"]["next_word"] = False
+                # with col1:
+                if "unedited" in st.session_state["app"]:
+                    if st.session_state["app"]["unedited"]["synthesized"]:
+                        st.session_state["app"]["current_word"] = current_word
+                        st.session_state["app"]["current_word_idx"] = int(idx)
+                        setup_sliders(column=col2)
+
+            if not st.session_state["app"]["words_to_edit"] and "edited" in st.session_state["app"]:
+
+                with col2:
+                     st.markdown("Edited:")
+                     st.audio(st.session_state["app"]["edited"]["wav"],
+                        sample_rate=st.session_state["sampling_rate"])
+
+                with st.form("Finalize editing?:"):
+                    st.markdown("Finalize editing?")
+                    submitted = st.form_submit_button("Complete")
+                    if submitted:
+                        save()
+                        reset()
+                       
 
                 
                 
@@ -325,10 +404,7 @@ def se_ui():
         start_bt = st.button("Click here to start tagging")
         if start_bt:
             st.session_state["is_tagging_started"] = True
-            st.session_state["app"] = {} # this will be used to track the speech data
-            st.session_state["app"]["edit_next"] = True
-            st.session_state["app"]["begin_processing"] = False
-            # st.experimental_rerun()
+            reset()
 
 
 
