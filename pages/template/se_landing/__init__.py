@@ -130,6 +130,98 @@ def tag_ui(suggestions, values):
         suggestions=suggestions)
     return words_to_edit
 
+def setup_sliders():
+        
+        cur_word_idx = st.session_state["app"]["current_word_idx"]
+
+        duration_control = st.slider("Speed Scale", 
+                                            value=float(st.session_state["app"]["fine_control"]["duration"][0][cur_word_idx]), 
+                                            min_value=0.0, 
+                                            max_value=3.0, 
+                                            help="Speech speed. Larger value become slow")
+        st.session_state["app"]["fine_control"]["duration"][0][cur_word_idx] = duration_control
+        
+        f0_control = st.slider("Pitch Scale", 
+                                    value=float(st.session_state["app"]["fine_control"]["f0"][0][cur_word_idx]), 
+                                    min_value=0.0, 
+                                    max_value=3.0)
+        
+        st.session_state["app"]["fine_control"]["f0"][0][cur_word_idx] = f0_control
+
+        energy_control = st.slider("Energy Scale", 
+                                            value=float(st.session_state["app"]["fine_control"]["duration"][0][cur_word_idx]), 
+                                            min_value=0.0, 
+                                            max_value=3.0)
+
+        
+        
+        st.session_state["app"]["fine_control"]["energy"][0][cur_word_idx] = energy_control
+        
+
+        
+def setup_speech_unedited():
+    
+    if "unedited" not in st.session_state["app"]:
+        st.session_state["app"]["unedited"] = {}
+        st.session_state["app"]["unedited"]["synthesiszed"] = False
+    
+    # if "f0" not in st.session_state["app"]["unedited"]:
+    if not st.session_state["app"]["unedited"]["synthesiszed"]:
+        st.session_state["app"]["unedited"]["synthesiszed"] =  st.button("Synth!", 
+                                                                         disabled=st.session_state["app"]["unedited"]["synthesiszed"])
+        if st.session_state["app"]["unedited"]["synthesiszed"]:
+            print(",asdf", st.session_state["app"]["unedited"])
+            with torch.no_grad():
+
+                control_values, batchs = preprocess_single(st.session_state["app"]["text"], 
+                                                        lexicon, 
+                                                        g2p, 
+                                                        args, 
+                                                        preprocess_config)
+                wavdata = synthesize(st.session_state["model"], 
+                                    configs, 
+                                    st.session_state["vocoder"], 
+                                    batchs, 
+                                    control_values)
+                            
+                
+                st.session_state["app"]["unedited"]["wav"] = wavdata
+                st.markdown("Original:")
+                st.audio(st.session_state["app"]["unedited"]["wav"],
+                            sample_rate=st.session_state["sampling_rate"])
+    else:
+        print("there:", st.session_state["app"]["unedited"])
+        st.markdown("Original:")
+        st.audio(st.session_state["app"]["unedited"]["wav"],
+                            sample_rate=st.session_state["sampling_rate"])
+
+
+def setup_speech_edited():
+    if "edited" not in st.session_state["app"]:
+        st.session_state["app"]["edited"] = {}
+
+    
+
+    if st.button("Synthesize Edited?"):
+        control_values, batchs = preprocess_single(st.session_state["app"]["text"], 
+                                                   lexicon, 
+                                                   g2p, 
+                                                   args, 
+                                                   preprocess_config, 
+                                                   st.session_state["app"]["fine_control"])
+        
+        wavdata = synthesize(st.session_state["model"], 
+                            configs, 
+                            st.session_state["vocoder"], 
+                            batchs, 
+                            control_values)
+
+        st.markdown("Edited:")
+        st.session_state["app"]["edited"]["wav"] = wavdata
+        st.audio(st.session_state["app"]["edited"]["wav"],
+                    sample_rate=st.session_state["sampling_rate"])
+
+
 def se_edit_widget():
     words_to_edit = []
     
@@ -157,6 +249,12 @@ def se_edit_widget():
             st.markdown(words)
             st.markdown(idxs)
 
+            if "fine_control" not in st.session_state["app"]:
+                st.session_state["app"]["fine_control"] = {
+                    "f0": np.ones((1,len(words))),
+                    "energy": np.ones((1,len(words))),
+                    "duration": np.ones((1,len(words)))
+                }
             # setup_data
             setup_data(texts, words, idxs)
             if not st.session_state["app"].get("suggestions"):
@@ -169,37 +267,29 @@ def se_edit_widget():
 
                 words_to_edit = tag_ui(st.session_state["app"]["suggestions"], 
                                        st.session_state["app"]["words_to_edit"])
-            
-            current_word = words_to_edit.pop()
-            word, idx = current_word.split("-")
-            st.markdown(f"Currently Editing: `{word}` at index `{idx}`")
+            if words_to_edit:
+                    current_word = words_to_edit.pop(0)
 
+                    word, idx = current_word.split("-")
+                    
 
+                    col1, col2 = st.columns([2, 2])
+                    # st.session_state["app"]["next_word"] = False
+                    with col1:
+                        setup_speech_unedited()
+                        
+                        if "unedited" in st.session_state["app"]:
+                            st.markdown(f"Currently Editing: `{word}` at index `{idx}`")
+                            st.session_state["app"]["current_word"] = current_word
+                            st.session_state["app"]["current_word_idx"] = int(idx)
+                            setup_sliders()
+                    with col2:
+                        st.json(st.session_state["app"])
+                        setup_speech_edited()
+    
 
-
-            duration_control = st.slider("Speed Scale", 
-                                                value=1.0, 
-                                                min_value=0.1, 
-                                                max_value=3.0, 
-                                                help="Speech speed. Larger value become slow")
-
-            f0_contrl = st.slider("Pitch Scale", 
-                                        value=1.0, 
-                                        min_value=0.0, 
-                                        max_value=1.0)
-            
-            energy_control = st.slider("Energy Scale", 
-                                                value=1.0, 
-                                                min_value=0.0, 
-                                                max_value=1.0)
-
-
-            st.session_state["app"]["duration_control"] = duration_control
-            st.session_state["app"]["f0_contrl"] = f0_contrl
-            st.session_state["app"]["energy_control"] = energy_control
-            st.session_state["app"]["current_word"] = current_word
-            st.session_state["app"]["current_word_idx"] = idx
-
+                
+                
     return words_to_edit
 
 def se_ui():        
