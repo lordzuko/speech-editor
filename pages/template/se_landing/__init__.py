@@ -398,7 +398,7 @@ def se_ui():
     else:
         st.subheader("Tagging Notes")
         st.markdown("""
-            * First select the type of essay, source and level for which the tagging has to be performed from the left panel.
+            * <Add Notes for taggers here>
             * Once the correct options have been selected, click, `Start Tagging` to proceed.
         """)
         start_bt = st.button("Click here to start tagging")
