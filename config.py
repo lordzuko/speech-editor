@@ -1,4 +1,5 @@
 import os
+import json
 import yaml
 import torch
 from g2p_en import G2p
@@ -20,6 +21,10 @@ PASSWORD = "" if os.environ["PASSWORD"] == "" else os.environ["PASSWORD"]
 config = yaml.load(
     open("conf/config.yaml", "r"), Loader=yaml.FullLoader
 )
+
+STATS = dict()
+STATS["ps"] = json.loads(open(config["stats"]["phone_stats"]).read())
+STATS["gs"] = json.loads(open(config["stats"]["global_stats"]).read())
 
 class Args:
     restore_step = config["inference_config"]["restore_step"]
