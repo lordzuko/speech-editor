@@ -1,5 +1,7 @@
 import torch
 import numpy as np
+from pprint import pprint
+import json
 import streamlit as st
 from operator import itemgetter
 from fs2.text import sequence_to_text
@@ -35,8 +37,11 @@ def setup_data(texts, words, idxs):
 def variance_control():
     pass
 
+def standardize(x, mean, std):
+    return (x - mean) / std
+
 def sample_gauss(x, mean, std):
-    return x*std + mean
+    return x * std + mean
 
 
 def process_unedited():
@@ -66,6 +71,13 @@ def process_unedited():
                 "e": output[3].detach().cpu().numpy(),
                 "d": output[5].detach().cpu().numpy()
             }
+
+            print("\n")
+            print("FC-PHONE: ") 
+            for k, v in st.session_state["app"]["fc"]["phone"].items():
+                print(k, v)
+            print("\n")
+
             st.session_state["app"]["unedited"]["phone"] = {
                 "p": output[2].detach().cpu().numpy(),
                 "e": output[3].detach().cpu().numpy(),
@@ -86,6 +98,8 @@ def process_edited():
                                                 preprocess_config, 
                                                 st.session_state["app"]["fc"]["phone"])
     
+    print("from edited: ", control_values)
+
     output, wavdata = synthesize(st.session_state["model"], 
                         configs, 
                         st.session_state["vocoder"], 
@@ -147,4 +161,4 @@ def cal_avg(word_idx):
     # print(f"word: {word} d:{d} p: {p} e: {e}")
     # print(f"word: {word} d:{np.mean(d)} p: {np.mean(p)} e: {np.mean(e)}")
     
-    return np.mean(d), np.mean(p), np.mean(e)
+    return round(np.mean(d)), np.mean(p), np.mean(e)
