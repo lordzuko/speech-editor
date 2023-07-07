@@ -38,7 +38,8 @@ class Args:
     speaker_id = config["inference_config"]["speaker_id"]
 
 args = Args()
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = "cpu"
 
 preprocess_config = yaml.load(
         open(args.preprocess_config, "r"), Loader=yaml.FullLoader

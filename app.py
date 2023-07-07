@@ -19,23 +19,23 @@ st.set_page_config(
     initial_sidebar_state="auto",
 )
 
-if not get_state(st, "MONGO_CONNECTION"):
-    init_session_state(st, "MONGO_CONNECTION", connect(
-        host=f"mongodb+srv://{DB_HOST}/{DB}?retryWrites=true&w=majority&ssl=true",
-        # host=f"mongodb://{APP_HOST}/{APP_DB}",
-        username=USERNAME,
-        password=PASSWORD,
-        authentication_source="admin",
-        read_preference=ReadPreference.PRIMARY_PREFERRED,
-        # maxpoolsize=MONGODB_POOL_SIZE,
-        tlsCAFile=certifi.where(),
-    ))
+# if not get_state(st, "MONGO_CONNECTION"):
+#     init_session_state(st, "MONGO_CONNECTION", connect(
+#         host=f"mongodb+srv://{DB_HOST}/{DB}?retryWrites=true&w=majority&ssl=true",
+#         # host=f"mongodb://{APP_HOST}/{APP_DB}",
+#         username=USERNAME,
+#         password=PASSWORD,
+#         authentication_source="admin",
+#         read_preference=ReadPreference.PRIMARY_PREFERRED,
+#         # maxpoolsize=MONGODB_POOL_SIZE,
+#         tlsCAFile=certifi.where(),
+#     ))
 
-    try:
+#     try:
 
-        print(get_state(st, "MONGO_CONNECTION").server_info())  # Forces a call.
-    except Exception:
-        raise Exception("mongo server is down.")
+#         print(get_state(st, "MONGO_CONNECTION").server_info())  # Forces a call.
+#     except Exception:
+#         raise Exception("mongo server is down.")
 
 
 def main():

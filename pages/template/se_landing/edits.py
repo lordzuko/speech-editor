@@ -2,7 +2,7 @@ import streamlit as st
 import matplotlib.pyplot as plt
 
 
-from utils.data import process_unedited, process_edited
+from .data import process_unedited, process_edited
 
 def setup_speech_unedited():
     """
@@ -19,14 +19,12 @@ def setup_speech_unedited():
         if st.session_state["app"]["unedited"]["synthesized"]:
             # print(",asdf", st.session_state["app"]["unedited"])
             wavdata = process_unedited()
-            print("FC: ", st.session_state["app"]["fc"])
             
             st.session_state["app"]["unedited"]["wav"] = wavdata
             st.markdown("Original:")
             st.audio(st.session_state["app"]["unedited"]["wav"],
                         sample_rate=st.session_state["sampling_rate"])
     else:
-        print("there:", st.session_state["app"]["unedited"])
         st.markdown("Original:")
         st.audio(st.session_state["app"]["unedited"]["wav"],
                             sample_rate=st.session_state["sampling_rate"])

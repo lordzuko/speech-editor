@@ -72,24 +72,80 @@ def process_unedited():
                 "d": output[5].detach().cpu().numpy()
             }
 
-            print("\n")
-            print("FC-PHONE: ") 
-            for k, v in st.session_state["app"]["fc"]["phone"].items():
-                print(k, v)
-            print("\n")
+            # print("\n")
+            # print("Unedited-FC-PHONE: ") 
+            # for k, v in st.session_state["app"]["fc"]["phone"].items():
+            #     print(k, v)
+            # print("\n")
 
             st.session_state["app"]["unedited"]["phone"] = {
                 "p": output[2].detach().cpu().numpy(),
                 "e": output[3].detach().cpu().numpy(),
                 "d": output[5].detach().cpu().numpy()
             }
-
+            print("scaling ---**saldjflasjdf;j")
             init_stats()
 
     return wavdata
 
+def prepare_mask():
+    print(1, st.session_state["app"]["unedited"]["phone"]["d"])
+    print(2,st.session_state["app"]["fc"]["phone"]["d"])
+    d_mask = st.session_state["app"]["unedited"]["phone"]["d"] != st.session_state["app"]["fc"]["phone"]["d"]
+    p_mask = st.session_state["app"]["unedited"]["phone"]["p"] != st.session_state["app"]["fc"]["phone"]["p"]
+    e_mask = st.session_state["app"]["unedited"]["phone"]["e"] != st.session_state["app"]["fc"]["phone"]["e"]
+    
+    print("d-mask:", d_mask)
+    print("p-mask:", p_mask)
+    print("e-mask:", e_mask)
+
+    # d_scaled_mask = st.session_state["app"]["fc"]["scaling"]["d"]*d_mask
+    # p_scaled_mask = st.session_state["app"]["fc"]["scaling"]["p"]*p_mask
+    # e_scaled_mask = st.session_state["app"]["fc"]["scaling"]["e"]*e_mask
+
+    # print("d_scaled_mask:", d_scaled_mask)
+    # print("p_scaled_mask:", p_scaled_mask)
+    # print("e_scaled_mask:", e_scaled_mask)
+
+    # d_scaled_mask = np.where(d_scaled_mask==0, 1, d_scaled_mask)
+    # p_scaled_mask = np.where(p_scaled_mask==0, 1, p_scaled_mask)
+    # e_scaled_mask = np.where(e_scaled_mask==0, 1, e_scaled_mask)
+
+    # print("d_scaled_mask2:", d_scaled_mask)
+    # print("p_scaled_mask2:", p_scaled_mask)
+    # print("e_scaled_mask2:", e_scaled_mask)
+
+
+    st.session_state["app"]["fc"]["mask"] = {}
+    st.session_state["app"]["fc"]["mask"]["d"] = d_mask
+    st.session_state["app"]["fc"]["mask"]["p"] = p_mask
+    st.session_state["app"]["fc"]["mask"]["e"] = e_mask
+
+    # return d_scaled_mask, p_scaled_mask, e_scaled_mask
+    
+def update_phone_variance():
+
+    for i, _ in enumerate(st.session_state["app"]["w"]):
+        d_mean = st.session_state["app"]["fc"]["word"]["d"][0][i]
+        p_mean = st.session_state["app"]["fc"]["word"]["p"][0][i]
+        e_mean = st.session_state["app"]["fc"]["word"]["e"][0][i]
+
+        for pi in st.session_state["app"]["w2p"][i]:
+            st.session_state["app"]["fc"]["phone"]["d"][0][pi] = d_mean/st.session_state["app"]["fc"]["scaling"]["d"][0][pi]
+            st.session_state["app"]["fc"]["phone"]["p"][0][pi] = p_mean/st.session_state["app"]["fc"]["scaling"]["p"][0][pi]
+            st.session_state["app"]["fc"]["phone"]["e"][0][pi] = e_mean/st.session_state["app"]["fc"]["scaling"]["e"][0][pi]
+
 
 def process_edited():
+
+    # update the phone variances based on the changes in word variances
+    update_phone_variance()
+    # apply scaling
+    prepare_mask()
+
+    # st.session_state["app"]["fc"]["phone"]["d"] = np.round(st.session_state["app"]["unedited"]["phone"]["d"] / d_scaled_mask)
+    # st.session_state["app"]["fc"]["phone"]["e"] = st.session_state["app"]["unedited"]["phone"]["e"] / e_scaled_mask
+    # st.session_state["app"]["fc"]["phone"]["p"] = st.session_state["app"]["unedited"]["phone"]["p"] / p_scaled_mask
 
     control_values, batchs = preprocess_single(st.session_state["app"]["text"], 
                                                 lexicon, 
@@ -98,7 +154,13 @@ def process_edited():
                                                 preprocess_config, 
                                                 st.session_state["app"]["fc"]["phone"])
     
-    print("from edited: ", control_values)
+    # print("Edited-Control-Values: ", control_values)
+
+    # print("\n")
+    # print("Edited-FC-PHONE: ") 
+    # for k, v in st.session_state["app"]["fc"]["phone"].items():
+    #     print(k, v)
+    # print("\n")
 
     output, wavdata = synthesize(st.session_state["model"], 
                         configs, 
@@ -143,22 +205,18 @@ def init_stats():
             # scaling factor is avg/curr_phone_val
             # later we can scale curr_phone_val = avg/scaling_factor
             st.session_state["app"]["fc"]["scaling"]["d"][0][pi] = d_mean/st.session_state["app"]["fc"]["phone"]["d"][0][pi]
-            st.session_state["app"]["fc"]["scaling"]["p"][0][pi] = d_mean/st.session_state["app"]["fc"]["phone"]["p"][0][pi]
-            st.session_state["app"]["fc"]["scaling"]["e"][0][pi] = d_mean/st.session_state["app"]["fc"]["phone"]["e"][0][pi]
+            st.session_state["app"]["fc"]["scaling"]["p"][0][pi] = p_mean/st.session_state["app"]["fc"]["phone"]["p"][0][pi]
+            st.session_state["app"]["fc"]["scaling"]["e"][0][pi] = e_mean/st.session_state["app"]["fc"]["phone"]["e"][0][pi]
 
 
 def cal_avg(word_idx):
 
     w2p = st.session_state['app']['w2p']
-    phones = st.session_state["app"]["p"]
+    # phones = st.session_state["app"]["p"]
     # print(itemgetter(*w2p[word_idx])(phones))
-    phones = itemgetter(*w2p[word_idx])(phones)
-    # print(f"word: {word} phones:{phones}")
-    # duration, f0, energy is fc is numpy object so no need for itemgetter
+    # phones = itemgetter(*w2p[word_idx])(phones)
     d = st.session_state["app"]["fc"]["phone"]["d"][0][w2p[word_idx]]
     p = st.session_state["app"]["fc"]["phone"]["p"][0][w2p[word_idx]]
     e = st.session_state["app"]["fc"]["phone"]["e"][0][w2p[word_idx]]
-    # print(f"word: {word} d:{d} p: {p} e: {e}")
-    # print(f"word: {word} d:{np.mean(d)} p: {np.mean(p)} e: {np.mean(e)}")
     
     return round(np.mean(d)), np.mean(p), np.mean(e)

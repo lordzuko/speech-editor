@@ -1,6 +1,6 @@
-preprocess_config_path: "/work/tc046/tc046/lordzuko/work/SpeakingStyle/config/BC2013/preprocess.yaml"
-model_config_path: "/work/tc046/tc046/lordzuko/work/SpeakingStyle/config/BC2013/model.yaml"
-train_config_path: "/work/tc046/tc046/lordzuko/work/SpeakingStyle/config/BC2013/train.yaml"
+preprocess_config_path: "/work/tc046/tc046/lordzuko/work/speech-editor/conf/BC2013/preprocess.yaml"
+model_config_path: "/work/tc046/tc046/lordzuko/work/speech-editor/conf/BC2013/model.yaml"
+train_config_path: "/work/tc046/tc046/lordzuko/work/speech-editor/conf/BC2013/train.yaml"
 inference_config:
     restore_step: 61000
     mode: "single"

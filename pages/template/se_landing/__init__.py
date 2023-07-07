@@ -16,8 +16,7 @@ from fs2.utils.model import get_model, get_vocoder
 from config import args, configs, device, model_config, preprocess_config, DEBUG
 
 from utils.models import SEData
-from utils.data import setup_data
-
+from .data import setup_data
 from .slider import setup_sliders
 from .edits import setup_speech_unedited
 
@@ -117,13 +116,7 @@ def se_edit_widget():
                     if st.session_state["app"]["unedited"]["synthesized"]:
                         setup_sliders(column=col2)
 
-            if not st.session_state["app"]["suggestions"] and "edited" in st.session_state["app"]:
-
-                with col2:
-                     st.markdown("Edited:")
-                     st.audio(st.session_state["app"]["edited"]["wav"],
-                        sample_rate=st.session_state["sampling_rate"])
-
+            if "fc" in st.session_state["app"]:
                 with st.form("Finalize editing?:"):
                     st.markdown("Finalize editing?")
                     submitted = st.form_submit_button("Complete")
@@ -139,7 +132,7 @@ def se_ui():
     Init Speech Editing UI page
     """
     if st.session_state.get("is_tagging_started"):
-        print(dict(st.session_state).keys())
+        # print(dict(st.session_state).keys())
 
         if (not get_state(st, "model")) or (not get_state(st, "vocoder")) or (not get_state(st, "sampling_rate")):
             with st.spinner("Loading and setting up TTS model..."):

@@ -1,5 +1,6 @@
 import streamlit as st
-from utils.data import sample_gauss, standardize
+import matplotlib.pyplot as plt
+from .data import sample_gauss, standardize
 from .edits import setup_speech_edited
 
 from config import STATS
@@ -30,20 +31,20 @@ def setup_sliders(column):
             with col3:
                 p = st.session_state["app"]["fc"]["word"]["p"][0][idx]
                 f0_control = st.slider("Pitch Scale", 
-                    value=int(sample_gauss(p, STATS["gs"]["p"]["mean"],STATS["gs"]["p"]["std"])), 
-                    min_value=0, 
-                    max_value=int(sample_gauss(3, STATS["gs"]["p"]["mean"],STATS["gs"]["p"]["std"])),
-                    step=1,
+                    value=float(sample_gauss(p, STATS["gs"]["p"]["mean"],STATS["gs"]["p"]["std"])), 
+                    min_value=0., 
+                    max_value=float(round(sample_gauss(3, STATS["gs"]["p"]["mean"],STATS["gs"]["p"]["std"]))),
+                    step=1.,
                     key=f"pitch-{word}")
                 
 
             with col4:
                 e = st.session_state["app"]["fc"]["word"]["e"][0][idx]
                 energy_control = st.slider("Energy Scale", 
-                    value=int(sample_gauss(e, STATS["gs"]["e"]["mean"],STATS["gs"]["e"]["std"])), 
-                    min_value=0, 
-                    max_value=int(sample_gauss(3, STATS["gs"]["e"]["mean"],STATS["gs"]["e"]["std"])),
-                    step=1,
+                    value=float(sample_gauss(e, STATS["gs"]["e"]["mean"],STATS["gs"]["e"]["std"])), 
+                    min_value=0., 
+                    max_value=float(round(sample_gauss(3, STATS["gs"]["e"]["mean"],STATS["gs"]["e"]["std"]))),
+                    step=1.,
                     key=f"energy-{word}")
 
                 # st.markdown(f"Currently Editing: `{word}` at index `{cur_word_idx}`")            
@@ -75,6 +76,10 @@ def setup_sliders(column):
                                             Fs=st.session_state["sampling_rate"])
                             st.pyplot(fig)
 
-    st.json(st.session_state["app"])
+    
+    st.json(st.session_state["app"]["w2p"])
+    st.json(st.session_state["app"]["fc"])
+    st.json(st.session_state["app"]["unedited"])
+
 
         
