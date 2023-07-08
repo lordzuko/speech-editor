@@ -76,7 +76,7 @@ def process_unedited():
                 print("\n")
 
             st.session_state["app"]["unedited"]["phone"] = deepcopy(st.session_state["app"]["fc"]["phone"])
-            print("scaling ---**saldjflasjdf;j")
+            
             init_stats()
 
     return wavdata
@@ -144,7 +144,10 @@ def process_edited():
 
 def init_stats():
 
-    
+    st.session_state["app"]["fc"]["gl_d"] = 0.
+    st.session_state["app"]["fc"]["gl_p"] = 0.
+    st.session_state["app"]["fc"]["gl_e"] = 0.
+
     st.session_state["app"]["fc"]["scaling"] = {
         "p": np.ones((1,len(st.session_state["app"]["p"]))),
         "e": np.ones((1,len(st.session_state["app"]["p"]))),

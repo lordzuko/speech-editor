@@ -4,15 +4,65 @@ from .data import sample_gauss, standardize
 from .edits import setup_speech_edited
 from config import DEBUG, STATS
 
-# def setup_bias_slider(column):
+def setup_bias_slider(column):
+    with st.form(key=f"form-global"):
+        col1, col2, col3, col4 = st.columns([2, 2, 2, 2])
 
-#     with col2:
-#         duration_control = st.slider("Global Duration",
-#                                         value=0.,
-#                                         min_value=-100.,
-#                                         max_value=100.,
-#                                         step=1,
-#                                         key=f"duration-global") 
+        with col2:
+            gl_d = st.slider("Global Duration",
+                                value=0,
+                                min_value=-int(sample_gauss(3, STATS["gs"]["d"]["mean"],STATS["gs"]["d"]["std"])),
+                                max_value=int(sample_gauss(3, STATS["gs"]["d"]["mean"],STATS["gs"]["d"]["std"])),
+                                step=1,
+                                key=f"duration-global")
+        with col3:
+            gl_p = st.slider("Global Pitch",
+                                value=0.,
+                                min_value=-100.,
+                                max_value=100.,
+                                step=1.,
+                                key=f"pitch-global")
+        with col4:
+            gl_e = st.slider("Global Energy",
+                                value=0.,
+                                min_value=-100.,
+                                max_value=100., 
+                                step=1.,
+                                key=f"energy-global")
+            
+        with col1:
+            submitted = st.form_submit_button(f"Utt Level")
+            
+            if submitted:
+                
+                f0_control = standardize(gl_p + STATS["gs"]["p"]["mean"], STATS["gs"]["p"]["mean"],STATS["gs"]["p"]["std"])
+                energy_control = standardize(gl_e + STATS["gs"]["e"]["mean"], STATS["gs"]["e"]["mean"],STATS["gs"]["e"]["std"])
+
+
+                st.session_state["app"]["fc"]["gl_d"] = gl_d
+                st.session_state["app"]["fc"]["gl_p"] = f0_control
+                st.session_state["app"]["fc"]["gl_e"] = energy_control
+
+
+                st.session_state["app"]["fc"]["word"]["d"][0] = st.session_state["app"]["unedited"]["word"]["d"][0] + gl_d
+                st.session_state["app"]["fc"]["word"]["p"][0] = st.session_state["app"]["unedited"]["word"]["p"][0] + f0_control
+                st.session_state["app"]["fc"]["word"]["e"][0] = st.session_state["app"]["unedited"]["word"]["e"][0] + energy_control
+
+
+                
+                if DEBUG:
+                    st.markdown(gl_d)
+                    st.markdown(f0_control)
+                    st.markdown(energy_control)
+                    
+                with column:
+                    setup_speech_edited()
+                    with st.expander("Spectrogram visualization"):
+                        fig = plt.figure()
+                        ax1 = fig.add_subplot(1, 1, 1)
+                        ax1.specgram(st.session_state["app"]["edited"]["wav"],
+                                        Fs=st.session_state["sampling_rate"])
+                        st.pyplot(fig)
 
 
 def setup_sliders(column):
@@ -20,7 +70,10 @@ def setup_sliders(column):
     Handle sliders on UI
     """
     print("Suggestions: ", st.session_state["app"]["suggestions"])
-    bias = False
+
+    with st.expander("Utterance Level Control"):
+        setup_bias_slider(column)
+
     for word in st.session_state["app"]["suggestions"]:
         # word = st.session_state["app"]["current_word"]
         w = word.split('-')[0]
@@ -76,8 +129,8 @@ def setup_sliders(column):
                     
                     if DEBUG:
                         st.markdown(duration_control)
-                        st.markdown(energy_control)
                         st.markdown(f0_control)
+                        st.markdown(energy_control)
                     with column:
                         setup_speech_edited()
                         with st.expander("Spectrogram visualization"):

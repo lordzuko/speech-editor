@@ -11,7 +11,7 @@ ENV_PATH = os.path.join(BASE_DIR, ".env")
 load_dotenv(dotenv_path=ENV_PATH)
 
 
-DEBUG = bool(os.environ["DEBUG"])
+DEBUG = os.environ["DEBUG"] == "True"
 
 DB = os.environ["DB"]
 DB_HOST = os.environ["DB_HOST"]
