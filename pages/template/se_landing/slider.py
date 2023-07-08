@@ -2,14 +2,25 @@ import streamlit as st
 import matplotlib.pyplot as plt
 from .data import sample_gauss, standardize
 from .edits import setup_speech_edited
+from config import DEBUG, STATS
 
-from config import STATS
+# def setup_bias_slider(column):
+
+#     with col2:
+#         duration_control = st.slider("Global Duration",
+#                                         value=0.,
+#                                         min_value=-100.,
+#                                         max_value=100.,
+#                                         step=1,
+#                                         key=f"duration-global") 
+
 
 def setup_sliders(column):
     """
     Handle sliders on UI
     """
     print("Suggestions: ", st.session_state["app"]["suggestions"])
+    bias = False
     for word in st.session_state["app"]["suggestions"]:
         # word = st.session_state["app"]["current_word"]
         w = word.split('-')[0]
@@ -18,6 +29,7 @@ def setup_sliders(column):
         with st.form(key=f"form-{word}"):
 
             col1, col2, col3, col4 = st.columns([2, 2, 2, 2])
+
             with col2:
                 
                 duration_control = st.slider("Duration Scale", 
@@ -62,12 +74,11 @@ def setup_sliders(column):
                     st.session_state["app"]["fc"]["word"]["p"][0][idx] = f0_control
                     st.session_state["app"]["fc"]["word"]["e"][0][idx] = energy_control
                     
-                    st.markdown(duration_control)
-                    st.markdown(energy_control)
-                    st.markdown(f0_control)
+                    if DEBUG:
+                        st.markdown(duration_control)
+                        st.markdown(energy_control)
+                        st.markdown(f0_control)
                     with column:
-                        # if DEBUG:
-                        #     st.json(st.session_state["app"])
                         setup_speech_edited()
                         with st.expander("Spectrogram visualization"):
                             fig = plt.figure()
@@ -76,10 +87,13 @@ def setup_sliders(column):
                                             Fs=st.session_state["sampling_rate"])
                             st.pyplot(fig)
 
-    
-    st.json(st.session_state["app"]["w2p"])
-    st.json(st.session_state["app"]["fc"])
-    st.json(st.session_state["app"]["unedited"])
+    if DEBUG:
+        st.markdown("word2phone mapping:")
+        st.json(st.session_state["app"]["w2p"])
+        st.markdown("Edited:")
+        st.json(st.session_state["app"]["fc"])
+        st.markdown("Unedited:")
+        st.json(st.session_state["app"]["unedited"])
 
 
         

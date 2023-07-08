@@ -1,5 +1,6 @@
 path:
-  ckpt_path: "/scratch/space1/tc046/lordzuko/work/output/ckpt/BC2013"
+  # ckpt_path: "/scratch/space1/tc046/lordzuko/work/output/ckpt/BC2013"
+  ckpt_path: "/work/tc046/tc046/lordzuko/work/SpeakingStyle/output/ckpt/BC2013"
   log_path: "/scratch/space1/tc046/lordzuko/work/output/log/BC2013"
   result_path: "/scratch/space1/tc046/lordzuko/work/output/result/BC2013"
 optimizer:
