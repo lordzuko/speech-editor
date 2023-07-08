@@ -10,6 +10,8 @@ from pages.template.login import login_screen
 from utils.session import init_session_state, get_state
 from config import DB, DB_HOST, USERNAME, PASSWORD
 
+from pages.template.se_landing import se_ui
+
 st.set_page_config(
     page_title="Speech Editor",
     page_icon=None,
@@ -38,6 +40,7 @@ if not get_state(st, "MONGO_CONNECTION"):
 
 def main():
     login_screen()
+    # se_ui()
 
 
 if __name__ == "__main__":
