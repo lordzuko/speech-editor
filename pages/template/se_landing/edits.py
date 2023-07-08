@@ -17,7 +17,6 @@ def setup_speech_unedited():
                                         disabled=st.session_state["app"]["unedited"]["synthesized"])
         
         if st.session_state["app"]["unedited"]["synthesized"]:
-            # print(",asdf", st.session_state["app"]["unedited"])
             wavdata = process_unedited()
             
             st.session_state["app"]["unedited"]["wav"] = wavdata

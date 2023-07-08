@@ -8,7 +8,7 @@ from pymongo import ReadPreference
 import streamlit as st
 from pages.template.login import login_screen
 from utils.session import init_session_state, get_state
-from config import DB, DB_HOST, USERNAME, PASSWORD
+from config import DB, DB_HOST, USERNAME, PASSWORD, DEBUG
 
 from pages.template.se_landing import se_ui
 
@@ -39,8 +39,10 @@ if not get_state(st, "MONGO_CONNECTION"):
 
 
 def main():
-    login_screen()
-    # se_ui()
+    if DEBUG:
+        se_ui()
+    else:
+        login_screen()
 
 
 if __name__ == "__main__":
