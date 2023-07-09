@@ -7,13 +7,18 @@ import numpy as np
 from utils.audio import save_audio
 from utils.session import get_state, init_session_state
 from fs2.controlled_synthesis import  preprocess_single, synthesize, preprocess_english
-from config import lexicon, g2p, args, preprocess_config, configs
+from config import lexicon, g2p, preprocess_config
+
+from config import args as _args
+from config import configs as _configs
+from config import device as _device
+from config import model_config as _model_config
 
 # from st_row_buttons import st_row_buttons
 # from st_btn_select import st_btn_select
 from streamlit_tags import st_tags
 from fs2.utils.model import get_model, get_vocoder
-from config import args, configs, device, model_config, preprocess_config, DEBUG
+from config import preprocess_config, DEBUG
 
 from utils.models import SEData
 from .data import setup_data
@@ -139,13 +144,13 @@ def se_ui():
                 if not get_state(st, "model"):
                     # Get model
                     print("Loading Model...")
-                    init_session_state(st, "model", get_model(args, configs, device, train=False))
+                    init_session_state(st, "model", get_model(_args, _configs, _device, _train=False))
                     print("Model Loaded")
                 
                 if not get_state(st, "vocoder"):
                     # Load vocoder
                     print("Loading Vocoder...")
-                    init_session_state(st, "vocoder", get_vocoder(model_config, device))
+                    init_session_state(st, "vocoder", get_vocoder(_model_config, _device))
                     print("Vocoder Loaded")
 
                 if not get_state(st, "sampling_rate"):

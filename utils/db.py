@@ -1,9 +1,14 @@
 import datetime
 import re
+import streamlit as st
+import certifi
+from mongoengine import connect
+from pymongo import ReadPreference
 
 from utils import check_hashes, make_hashes
 from utils.models import Users
 from utils.text import get_random_string
+from config import DB, DB_HOST, USERNAME, PASSWORD, DEBUG
 
 
 def validate_login(username, password):
@@ -62,3 +67,16 @@ def fetch_annotators(user_type):
             data.append(d["username"])
     print(data)
     return data
+
+@st.cache_resource(show_spinner="Connecting to DB")
+def db_init():
+    return connect(
+        host=f"mongodb+srv://{DB_HOST}/{DB}?retryWrites=true&w=majority&ssl=true",
+        # host=f"mongodb://{APP_HOST}/{APP_DB}",
+        username=USERNAME,
+        password=PASSWORD,
+        authentication_source="admin",
+        read_preference=ReadPreference.PRIMARY_PREFERRED,
+        # maxpoolsize=MONGODB_POOL_SIZE,
+        tlsCAFile=certifi.where(),
+    )
