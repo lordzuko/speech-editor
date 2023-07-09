@@ -193,5 +193,5 @@ def cal_avg(word_idx):
     d = st.session_state["app"]["fc"]["phone"]["d"][0][w2p[word_idx]]
     p = st.session_state["app"]["fc"]["phone"]["p"][0][w2p[word_idx]]
     e = st.session_state["app"]["fc"]["phone"]["e"][0][w2p[word_idx]]
-    
+
     return round(np.mean(d)), np.mean(p), np.mean(e)
