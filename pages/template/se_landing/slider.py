@@ -77,8 +77,10 @@ def setup_sliders(column):
     with st.form(key=f"form-word-sliders"):
         for word in st.session_state["app"]["suggestions"]:
             # word = st.session_state["app"]["current_word"]
+        
             w = word.split('-')[0]
-            idx = int(word.split("-")[1])
+            idx = int(word.split("-")[-1])
+        
 
             col1, col2, col3, col4 = st.columns([2, 2, 2, 2])
 

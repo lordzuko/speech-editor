@@ -6,7 +6,7 @@ from mongoengine import connect
 from pymongo import ReadPreference
 
 from utils import check_hashes, make_hashes
-from utils.models import Users
+from utils.models import Users, Annotation
 from utils.text import get_random_string
 from config import DB, DB_HOST, USERNAME, PASSWORD, DEBUG
 
@@ -66,6 +66,15 @@ def fetch_annotators(user_type):
             d.pop("_id")
             data.append(d["username"])
     print(data)
+    return data
+
+def fetch_annotated(tagger):
+    fetched_data = Annotation.objects(tagger=tagger).only("wav_name")
+    data = []
+    if fetched_data:
+        for d in fetched_data:
+            d = dict(d.to_mongo())
+            data.append(d["wav_name"])
     return data
 
 @st.cache_resource(show_spinner="Connecting to DB")

@@ -2,7 +2,7 @@ import datetime
 
 from constants import TAGGING_STATUS, USER_TYPES
 from mongoengine import (BooleanField, DateTimeField, DictField, Document,
-                         EmailField, ListField, StringField)
+                         EmailField, ListField, StringField, IntField)
 
 
 class Users(Document):
@@ -38,30 +38,31 @@ class Projects(Document):
     modified_at = DateTimeField(default=datetime.datetime.utcnow())
 
 
-class SEData(Document): # pylint-disable: too-few-public-methods
+class Annotation(Document): # pylint-disable: too-few-public-methods
     """
     Docoment class for the tagging data
     """
-    meta = {"collection": "se_data"}
-    wav_file = StringField(required=True)
+    meta = {"collection": "annotation"}
+    wav_name = StringField(required=True)
     tagging_status = StringField(default="untagged")
     text = StringField()
-    phones = ListField()
-    words = ListField()
-    g2p_maping = DictField()
-    f0_word = ListField()
-    energy_word = ListField()
-    duration_word = ListField()
-    f0_phone = ListField()
-    energy_phone = ListField()
-    duration_phone = ListField()
+    unedited = DictField()
+    edited = DictField()
     created_at = DateTimeField()
     tagging_status = StringField()
     tagger = StringField(default="")
     tagged_at = DateTimeField(null=True)
-    # reviewed_at = DateTimeField(null=True)
 
 
+class Text(Document): # pylint-disable: too-few-public-methods
+    """
+    Docoment class for the text data
+    """
+    meta = {"collection": "text"}
+    wav_name = StringField(required=True)
+    text = StringField(required=True)
+    utt_len = IntField(required=True)
+    
 
 
 
