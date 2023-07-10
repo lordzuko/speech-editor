@@ -20,3 +20,13 @@ def reset():
     st.session_state["app"]["edit_next"] = True
     st.session_state["app"]["begin_processing"] = False
     st.experimental_rerun()
+
+
+def reset_sequence():
+    """
+    Reset states for sequential tagging task
+    """
+    st.session_state["app"] = {} # this will be used to track the speech data
+    st.session_state["app"]["edit_next"] = True
+    st.session_state["app"]["data"] = {}
+    st.experimental_rerun()

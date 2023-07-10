@@ -13,7 +13,8 @@ from config import model_config as _model_config
 from fs2.utils.model import get_model, get_vocoder
 from config import preprocess_config,  MODE
 
-from .mode import se_edit_single, se_edit_sequence
+from .sequence.mode import se_edit_sequence
+from .single.mode import se_edit_single
 from .utils import reset
 
 def handle_submit(data, stage="final"):
@@ -66,8 +67,10 @@ def se_ui():
         if MODE == "single":
             se_edit_single()
         else:
-            st.session_state["app"]["processed_wav"] = []
-            st.session_state["app"]["data"] = {}
+            if not st.session_state.get("processed_wav"):
+                st.session_state["processed_wav"] = []
+            if not st.session_state["app"].get("data"):
+                st.session_state["app"]["data"] = {}
             se_edit_sequence()
     else:
         st.subheader("Tagging Notes")
