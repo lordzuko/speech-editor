@@ -71,7 +71,7 @@ def setup_sliders(column):
     """
     print("Suggestions: ", st.session_state["app"]["suggestions"])
 
-    with st.expander("Utterance Level Control"):
+    with st.expander("Utterance Level Control",expanded=True):
         setup_bias_slider(column)
 
     with st.form(key=f"form-word-sliders"):
