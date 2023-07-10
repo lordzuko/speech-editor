@@ -10,7 +10,7 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 ENV_PATH = os.path.join(BASE_DIR, ".env")
 load_dotenv(dotenv_path=ENV_PATH)
 
-
+MODE = os.environ["MODE"]
 DEBUG = os.environ["DEBUG"] == "True"
 
 DB = os.environ["DB"]

@@ -4,6 +4,7 @@ from pprint import pprint
 import json
 import streamlit as st
 from operator import itemgetter
+# from fs2.text import sequence_to_text_extended
 from fs2.text import sequence_to_text
 from fs2.controlled_synthesis import  preprocess_single, synthesize, preprocess_english
 from config import lexicon, g2p, args, preprocess_config, configs, STATS
@@ -14,12 +15,16 @@ def setup_data(texts, words, idxs):
     """
     Setup the application data to deal with words, phone, mapping etc.
     """
+    print("setup_data-text: ", list(texts[0]))
+    # phones = sequence_to_text_extended(list(texts[0]))
     phones = sequence_to_text(list(texts[0]))
+    print("setup_data-phones: ", phones)
     phones = phones.lstrip("{")
     phones = phones.rstrip("}")
     phones = phones.split(" ")
     
     st.session_state["app"]["p"] = phones
+    print("setup_data:", len(phones))
     st.session_state["app"]["w"] = words
     st.session_state["app"]["idxs"] = idxs
 
@@ -32,7 +37,7 @@ def setup_data(texts, words, idxs):
     for i, w in enumerate(words):
         st.session_state["app"]["w2p"][i] = list(range(c,c+idxs[i]))
         c+=idxs[i]
-
+    print(st.session_state["app"]["w2p"])
 
 def variance_control():
     pass
