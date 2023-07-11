@@ -57,12 +57,12 @@ def setup_bias_slider(column):
                     
                 with column:
                     setup_speech_edited()
-                    with st.expander("Spectrogram visualization"):
-                        fig = plt.figure()
-                        ax1 = fig.add_subplot(1, 1, 1)
-                        ax1.specgram(st.session_state["app"]["edited"]["wav"],
-                                        Fs=st.session_state["sampling_rate"])
-                        st.pyplot(fig)
+                    # with st.expander("Spectrogram visualization"):
+                    #     fig = plt.figure()
+                    #     ax1 = fig.add_subplot(1, 1, 1)
+                    #     ax1.specgram(st.session_state["app"]["edited"]["wav"],
+                    #                     Fs=st.session_state["sampling_rate"])
+                    #     st.pyplot(fig)
 
 
 def setup_sliders(column):
