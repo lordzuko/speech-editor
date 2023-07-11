@@ -1,8 +1,7 @@
-import datetime
 import streamlit as st
 
-from utils.models import Annotation
 from utils.session import get_state, init_session_state
+from utils.db import fetch_annotated
 
 from config import preprocess_config
 from config import args as _args
@@ -16,25 +15,6 @@ from config import preprocess_config,  MODE
 from .sequence.mode import se_edit_sequence
 from .single.mode import se_edit_single
 from .utils import reset
-
-def handle_submit(data, stage="final"):
-    
-    annot = dict()
-    if stage == "final": 
-        annot["text"] = data["text"]
-        annot["unedited"] = data["unedited"]
-        annot["edited"] = data["edited"]
-        annot["wav_name"] = data["wav_name"]
-        output.created_at = datetime.datetime.utcnow()
-        output.tagger = tagger
-        output.tagged_at = datetime.datetime.utcnow()
-        output.save()
-        success = Annotation(**data).save()
-        #, set__tagger=tagger, set__tagged_at=datetime.datetime.utcnow()
-        data.update(set__tagging_status = 'tagged')
-        data.save()
-        st.session_state["processed_essay_ids"].append(dict(data.to_mongo())['userId'])
-        print('Your submitted response')
 
 def se_ui():        
     """
@@ -68,7 +48,7 @@ def se_ui():
             se_edit_single()
         else:
             if not st.session_state.get("processed_wav"):
-                st.session_state["processed_wav"] = []
+                st.session_state["processed_wav"] = fetch_annotated(st.session_state["login"]["username"])
             if not st.session_state["app"].get("data"):
                 st.session_state["app"]["data"] = {}
             se_edit_sequence()

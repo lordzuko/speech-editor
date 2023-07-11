@@ -7,7 +7,8 @@ from config import lexicon, g2p, preprocess_config
 from config import preprocess_config
 
 
-from utils.models import Text, Annotation
+from utils.models import Text
+from utils.db import handle_submit
 from .data import setup_data
 from .slider import setup_sliders
 from .edits import setup_speech_unedited
@@ -27,6 +28,7 @@ def se_edit_sequence():
                                                                 Q(utt_len__lte=8))[0].to_mongo())
         
         st.session_state["app"]["text"] = st.session_state["app"]["data"]["t"]["text"]
+        st.session_state["app"]["wav_name"] = st.session_state['app']['data']['t']['wav_name']
         st.session_state["app"]["edit_next"] = False
         text = st.session_state["app"]["text"]
 
@@ -53,22 +55,15 @@ def se_edit_sequence():
 
             
             st.markdown("---")
-            c1, c2, _ = st.columns([1, 1, 8])
-            c3, _ = st.columns([1, 1])
+            c1, _ = st.columns([1, 1])
             
             with c1:
-                save_bt = st.button("Save")
-                if save_bt:
-                    with c3:
-                        st.info("Saving to DB")
-                    save(st.session_state['app']['data']['t']['wav_name'])
-                    st.session_state["processed_wav"].append(st.session_state["app"]["data"]["t"]["wav_name"])
-                    with c3:
-                        st.success("Saved!")
-            with c2:
                 next_bt = st.button("Next")
                 if next_bt:
-                    print("mext_btn: ", st.session_state["processed_wav"])
+                    st.info("Saving to DB")
+                    save(st.session_state["app"]["wav_name"], username=st.session_state["login"]["username"])
+                    print("save value: ", handle_submit())
+                    st.success("Saved!")
                     reset_sequence()
 
     except IndexError:

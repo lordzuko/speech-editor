@@ -122,9 +122,8 @@ def process_edited():
 
     # update the phone variances based on the changes in word variances
     update_phone_variance()
-    if DEBUG:
-        # apply scaling
-        prepare_mask()
+    # if DEBUG:
+    prepare_mask()
 
     control_values, batchs = preprocess_single(st.session_state["app"]["text"], 
                                                 lexicon, 
