@@ -4,6 +4,8 @@ import streamlit as st
 import certifi
 from mongoengine import connect
 from pymongo import ReadPreference
+import numpy as np
+from collections import defaultdict
 
 from utils import check_hashes, make_hashes
 from utils.models import Users, Annotation
@@ -89,3 +91,46 @@ def db_init():
         # maxpoolsize=MONGODB_POOL_SIZE,
         tlsCAFile=certifi.where(),
     )
+
+def _data2mongo_(data: dict):
+    """
+    convert the numpy values to array/ list type 
+    to make them compatible with mongodb's accepted 
+    datatypes
+    """
+    out = defaultdict(dict)
+    keys = ["phone", "scaling", "word", "mask", "gl_d", "gl_p", "gl_e"]
+    for k, v in data.items():
+        if k in keys:
+            if isinstance(v, int) or isinstance(v, float):
+                out[k] = v
+                continue
+            else:
+                for kk, vv in v.items():
+                    if isinstance(vv, np.ndarray):
+                        out[k][kk] = vv.tolist()
+                    else:
+                        out[k][kk] = vv
+    return out
+
+def handle_submit():
+    annot = dict()
+    annot["text"] = st.session_state["app"]["text"]
+    annot["unedited"] = _data2mongo_(st.session_state["app"]["unedited"])
+    if "edited" in st.session_state["app"]:
+        annot["edited"] = _data2mongo_(st.session_state["app"]["fc"])
+        print(annot["edited"].keys())
+
+    annot["wav_name"] = st.session_state["app"]["wav_name"]
+    annot["p"] = st.session_state["app"]["p"]
+    annot["w"] = st.session_state["app"]["w"]
+    annot["idxs"] = st.session_state["app"]["idxs"]
+    annot["p2i"] = st.session_state["app"]["p2i"]
+    annot["w2i"] = st.session_state["app"]["w2i"]
+    annot["w2p"] = {str(k) : v for k,v in st.session_state["app"]["w2p"].items()}
+    annot["created_at"] = datetime.datetime.utcnow()
+    annot["tagger"] = st.session_state["login"]["username"]
+    annot["tagged_at"] = datetime.datetime.utcnow()
+    success = Annotation(**annot).save()
+    st.session_state["processed_wav"].append(st.session_state["app"]["wav_name"])
+    return success
