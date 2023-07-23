@@ -114,3 +114,5 @@ montreal-forced-aligner/
 raw_data/
 output/
 *.npy
+log/
+tmp/
