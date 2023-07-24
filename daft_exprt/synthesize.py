@@ -171,7 +171,7 @@ def phonemize_sentence(sentence, dictionary, hparams):
             sentence_phonemized.append('<unk>')
         # at this point we pass to the next word
         # we must add a word boundary between two consecutive words
-        # print("sent_words: ", sent_words)
+        print("sent_words: ", sentence_phonemized)
         if len(sent_words) != 0:
             word_bound = sent_words.pop(0) if sent_words[0] in punctuation else whitespace
             sentence_phonemized.append(word_bound)
@@ -201,6 +201,7 @@ def phonemize_sentence(sentence, dictionary, hparams):
         os.remove(oovs_trans)
         rmtree(tmp_dir, ignore_errors=True)
 
+    print("-- WORDS -- ", _words)
     nb_symbols = 0
     word_idx = 0
     idxs = []
@@ -208,6 +209,7 @@ def phonemize_sentence(sentence, dictionary, hparams):
     phones = []
     ignore_idxs = []
     for item in sentence_phonemized:
+        print("-- item --: ", item)
         if isinstance(item, list):  # correspond to phonemes of a word
             nb_symbols += len(item)
             idxs.append(nb_symbols)
@@ -218,8 +220,14 @@ def phonemize_sentence(sentence, dictionary, hparams):
             nb_symbols += 1
             idxs.append(nb_symbols)
             words.append(item)
+            if item in _words[word_idx:]:
+                word_idx += 1
             phones.append(item)
             ignore_idxs.append(nb_symbols)
+        
+
+    print("WORDS!!! ", words)
+
 
     return sentence_phonemized, words, phones, idxs, ignore_idxs
 
@@ -527,7 +535,7 @@ def synthesize(model,vocoder, phonemeized_sents, hparams, pitch_factor=None, dur
     control_values = {}
     v = batch_predictions["a.wav"]
 
-    control_values["d"] = v[1].unsqueeze(0).detach().cpu().numpy()
+    control_values["d"] = v[0].unsqueeze(0).detach().cpu().numpy()
     control_values["e"] = v[2].unsqueeze(0).detach().cpu().numpy()
     control_values["p"] = v[3].unsqueeze(0).detach().cpu().numpy()
     mels = v[4].unsqueeze(0)

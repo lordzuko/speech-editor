@@ -911,26 +911,30 @@ class DaftExprt(nn.Module):
         # embed phoneme symbols, add positional encoding and encode input sequence
         enc_outputs = self.phoneme_encoder(symbols, encoder_film, input_lengths)  # (B, L_max, hidden_embed_dim)
         # predict prosody parameters
-        duration_preds, energy_preds, pitch_preds = self.prosody_predictor(enc_outputs, prosody_pred_film, input_lengths)  # (B, L_max)
-
-        
-        # multiply durations by duration factors and extract int durations
-        duration_preds *= dur_factors  # (B, L_max)
-        duration_preds, durations_int = self.get_int_durations(duration_preds, hparams)  # (B, L_max)
-        # add energy factors to energies
-        # set 0 energy for symbols with 0 duration
-        energy_preds *= energy_factors  # (B, L_max)
-        energy_preds[durations_int == 0] = 0.  # (B, L_max)
-        # set unvoiced pitch for symbols with 0 duration
-        # apply pitch factors using specified transformation
-        pitch_preds[durations_int == 0] = 0.
-        if pitch_transform == 'add':
-            pitch_preds = self.pitch_shift(pitch_preds, pitch_factors, hparams, speaker_ids)  # (B, L_max)
-        elif pitch_transform == 'multiply':
-            pitch_preds = self.pitch_multiply(pitch_preds, pitch_factors)  # (B, L_max)
+        # print("enc_outputs:before-: ", enc_outputs)
+        if not fine_control:
+            duration_preds, energy_preds, pitch_preds = self.prosody_predictor(enc_outputs, prosody_pred_film, input_lengths)  # (B, L_max)
+            # multiply durations by duration factors and extract int durations
+            duration_preds *= dur_factors  # (B, L_max)
+            duration_preds, durations_int = self.get_int_durations(duration_preds, hparams)  # (B, L_max)
+            # add energy factors to energies
+            # set 0 energy for symbols with 0 duration
+            energy_preds *= energy_factors  # (B, L_max)
+            energy_preds[durations_int == 0] = 0.  # (B, L_max)
+            # set unvoiced pitch for symbols with 0 duration
+            # apply pitch factors using specified transformation
+            pitch_preds[durations_int == 0] = 0.
+            if pitch_transform == 'add':
+                pitch_preds = self.pitch_shift(pitch_preds, pitch_factors, hparams, speaker_ids)  # (B, L_max)
+            elif pitch_transform == 'multiply':
+                pitch_preds = self.pitch_multiply(pitch_preds, pitch_factors)  # (B, L_max)
+            else:
+                raise NotImplementedError
         else:
-            raise NotImplementedError
-
+            duration_preds, energy_preds, pitch_preds = dur_factors, energy_factors, pitch_factors
+            duration_preds, durations_int = self.get_int_durations(duration_preds, hparams)  # (B, L_max)
+            energy_preds[durations_int == 0] = 0.  # (B, L_max)
+            pitch_preds[durations_int == 0] = 0.
         
         # perform Gaussian upsampling on symbols sequence
         # symbols_upsamp = (B, T_max, hidden_embed_dim)

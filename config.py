@@ -8,6 +8,7 @@ import logging
 from dotenv import load_dotenv
 from daft_exprt.hparams import HyperParams
 from daft_exprt.synthesize import get_dictionary
+from daft_exprt.symbols import whitespace, punctuation, eos
 
 _logger = logging.getLogger(__name__)
 
@@ -72,4 +73,4 @@ torch.backends.cudnn.deterministic = True
 _logger.warning('You have chosen to seed training. This will turn on the CUDNN deterministic setting, '
                 'which can slow down your training considerably! You may see unexpected behavior when '
                 'restarting from checkpoints.\n')
-
+ignore_chars = list(whitespace) + list(punctuation) + list(eos)

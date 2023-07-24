@@ -32,12 +32,14 @@ def se_edit_sequence():
 
     if not st.session_state["app"]["edit_next"]:
         # out = preprocess_english(text,lexicon, g2p, preprocess_config)
-        out = prepare_sentences_for_inference([text], dictionary, hparams)
+        if not st.session_state["app"].get("phone_sents"):
+            print("PREPARING SENTENCES:")
+            out = prepare_sentences_for_inference([text], dictionary, hparams)
 
-        st.session_state["app"]["phone_sents"], words, phones, idxs, st.session_state["app"]["ignore_idxs"] = [out[0][0]], out[0][1], out[0][2], out[0][3], out[0][4]
+            st.session_state["app"]["phone_sents"], words, phones, idxs, st.session_state["app"]["ignore_idxs"] = [out[0][0]], out[0][1], out[0][2], out[0][3], out[0][4]
 
-        print("TEXTS: ",st.session_state["app"]["phone_sents"])
-        setup_data(words, phones, idxs)
+            print("TEXTS: ",st.session_state["app"]["phone_sents"])
+            setup_data(words, phones, idxs)
         st.markdown(f"#### Text: {st.session_state['app']['text']}")
         st.markdown(f"##### Filename: {st.session_state['app']['data']['t']['wav_name']}")
         

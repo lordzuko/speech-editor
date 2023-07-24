@@ -34,9 +34,9 @@ def setup_data(words, phones, idxs):
     st.session_state["app"]["w"] = words
     st.session_state["app"]["idxs"] = idxs
 
-    st.session_state["app"]["p2i"] = {p: i for i, p in enumerate(phones)}
+    # st.session_state["app"]["p2i"] = {p: i for i, p in enumerate(phones)}
     st.session_state["app"]["i2p"] = {i: p for i, p in enumerate(phones)}
-    st.session_state["app"]["w2i"] = {w: i for i, w in enumerate(words)}
+    # st.session_state["app"]["w2i"] = {w: i for i, w in enumerate(words)}
     st.session_state["app"]["i2w"] = {i: w for i, w in enumerate(words)}
     st.session_state["app"]["w2p"] = {}
     c = 0
@@ -118,10 +118,7 @@ def update_phone_variance():
         e_mean = st.session_state["app"]["fc"]["word"]["e"][0][i]
 
         for pi in st.session_state["app"]["w2p"][i]:
-            print("||| -> ", st.session_state["app"]["fc"]["scaling"]["d"][0])
-            print("||| -> ", st.session_state["app"]["fc"]["scaling"]["d"][0][pi])
-            val = round(d_mean/st.session_state["app"]["fc"]["scaling"]["d"][0][pi])
-            print(pi, st.session_state["app"]["i2p"])
+            val = d_mean/st.session_state["app"]["fc"]["scaling"]["d"][0][pi]
             phone = st.session_state["app"]["i2p"][pi]
             st.session_state["app"]["fc"]["phone"]["d"][0][pi] = val # np.clip(val, a_min=STATS["ps"]["d"][phone]["-2s"], a_max=STATS["ps"]["d"][phone]["+2s"])
             val = p_mean/st.session_state["app"]["fc"]["scaling"]["p"][0][pi]
@@ -159,7 +156,8 @@ def process_edited():
                                         hparams,
                                         pitch_factor=st.session_state["app"]["fc"]["phone"]["p"], 
                                         dur_factor=st.session_state["app"]["fc"]["phone"]["d"], 
-                                        energy_factor=st.session_state["app"]["fc"]["phone"]["e"])
+                                        energy_factor=st.session_state["app"]["fc"]["phone"]["e"],
+                                        fine_control=True)
 
     return wavdata
 
@@ -224,4 +222,4 @@ def cal_avg(word_idx):
     p = st.session_state["app"]["fc"]["phone"]["p"][0][w2p[word_idx]]
     e = st.session_state["app"]["fc"]["phone"]["e"][0][w2p[word_idx]]
 
-    return round(np.mean(d)), np.mean(p), np.mean(e)
+    return np.mean(d), np.mean(p), np.mean(e)
