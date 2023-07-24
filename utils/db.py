@@ -125,12 +125,13 @@ def handle_submit():
     annot["p"] = st.session_state["app"]["p"]
     annot["w"] = st.session_state["app"]["w"]
     annot["idxs"] = st.session_state["app"]["idxs"]
-    annot["p2i"] = st.session_state["app"]["p2i"]
-    annot["w2i"] = st.session_state["app"]["w2i"]
+    annot["i2p"] = {str(k): v for k, v in st.session_state["app"]["i2p"].items()}
+    annot["i2w"] = {str(k): v for k,v in st.session_state["app"]["i2w"].items()}
     annot["w2p"] = {str(k) : v for k,v in st.session_state["app"]["w2p"].items()}
     annot["created_at"] = datetime.datetime.utcnow()
     annot["tagger"] = st.session_state["login"]["username"]
     annot["tagged_at"] = datetime.datetime.utcnow()
-    success = Annotation(**annot).save()
+    print(annot)
+    success = Annotation(**annot).save(check_keys=False)
     st.session_state["processed_wav"].append(st.session_state["app"]["wav_name"])
     return success

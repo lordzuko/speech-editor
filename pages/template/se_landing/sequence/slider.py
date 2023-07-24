@@ -2,7 +2,7 @@ import streamlit as st
 import matplotlib.pyplot as plt
 from .data import sample_gauss, standardize
 from .edits import setup_speech_edited
-from config import DEBUG, STATS
+from config import DEBUG, STATS, ignore_chars
 
 def setup_bias_slider(column):
     with st.form(key=f"form-global"):
@@ -10,24 +10,23 @@ def setup_bias_slider(column):
 
         with col2:
             gl_d = st.slider("Global Duration",
-                                value=0,
-                                min_value=-int(sample_gauss(3, STATS["gs"]["d"]["mean"],STATS["gs"]["d"]["std"])),
-                                max_value=int(sample_gauss(3, STATS["gs"]["d"]["mean"],STATS["gs"]["d"]["std"])),
-                                step=1,
+                                value=1.,
+                                min_value=0.,
+                                max_value=2.,
                                 key=f"duration-global")
         with col3:
             gl_p = st.slider("Global Pitch",
                                 value=0.,
-                                min_value=-100.,
-                                max_value=100.,
+                                min_value=-50.,
+                                max_value=50.,
                                 step=1.,
                                 key=f"pitch-global")
         with col4:
             gl_e = st.slider("Global Energy",
                                 value=0.,
-                                min_value=-100.,
-                                max_value=100., 
-                                step=1.,
+                                min_value=-1.,
+                                max_value=1., 
+                                step=0.01,
                                 key=f"energy-global")
             
         with col1:
@@ -44,7 +43,7 @@ def setup_bias_slider(column):
                 st.session_state["app"]["fc"]["gl_e"] = energy_control
 
 
-                st.session_state["app"]["fc"]["word"]["d"][0] = st.session_state["app"]["unedited"]["word"]["d"][0] + gl_d
+                st.session_state["app"]["fc"]["word"]["d"][0] = st.session_state["app"]["unedited"]["word"]["d"][0] * gl_d
                 st.session_state["app"]["fc"]["word"]["p"][0] = st.session_state["app"]["unedited"]["word"]["p"][0] + f0_control
                 st.session_state["app"]["fc"]["word"]["e"][0] = st.session_state["app"]["unedited"]["word"]["e"][0] + energy_control
 
@@ -80,23 +79,22 @@ def setup_sliders(column):
         
             w = word.split('-')[0]
             idx = int(word.split("-")[-1])
-        
-
+            if w in ignore_chars:
+                continue
             col1, col2, col3, col4 = st.columns([2, 2, 2, 2])
 
             with col2:
                 d = st.session_state["app"]["fc"]["word"]["d"][0][idx]
                 
                 duration_control = st.slider("Duration Scale", 
-                    value=int(d), 
-                    min_value=0,  
-                    max_value=int(sample_gauss(3, STATS["gs"]["d"]["mean"],STATS["gs"]["d"]["std"])), 
-                    help="Speech speed. Larger value become slow",
-                    step=1,
+                    value=1., 
+                    min_value=0.,  
+                    max_value=2., 
+                    help="multiplier for duration (0x - 2x)",
                     key=f"duration-{word}")
 
                 # duration_control = standardize(duration_control, STATS["gs"]["d"]["mean"],STATS["gs"]["d"]["std"])
-                st.session_state["app"]["fc"]["word"]["d"][0][idx] = duration_control
+                st.session_state["app"]["fc"]["word"]["d"][0][idx] *= duration_control
                 if DEBUG:
                     st.markdown(duration_control)
                 

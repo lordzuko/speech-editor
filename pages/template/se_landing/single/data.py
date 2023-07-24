@@ -5,23 +5,23 @@ import json
 import streamlit as st
 from operator import itemgetter
 # from fs2.text import sequence_to_text_extended
-from fs2.text import sequence_to_text
-from fs2.controlled_synthesis import  preprocess_single, synthesize, preprocess_english
-from config import lexicon, g2p, args, preprocess_config, configs, STATS
-from config import args, configs, device, model_config, preprocess_config, DEBUG
+# from fs2.text import sequence_to_text
+# from fs2.controlled_synthesis import  preprocess_single, synthesize, preprocess_english
+# from config import lexicon, g2p, args, preprocess_config, configs, STATS
+# from config import args, configs, device, model_config, preprocess_config, DEBUG
 from copy import deepcopy
 
-def setup_data(texts, words, idxs):
+def setup_data(phone_sents, words, phones, idxs):
     """
     Setup the application data to deal with words, phone, mapping etc.
     """
-    print("setup_data-text: ", list(texts[0]))
+    print("setup_data-text: ", list(phone_sents))
     # phones = sequence_to_text_extended(list(texts[0]))
-    phones = sequence_to_text(list(texts[0]))
-    print("setup_data-phones: ", phones)
-    phones = phones.lstrip("{")
-    phones = phones.rstrip("}")
-    phones = phones.split(" ")
+    # phones = sequence_to_text(list(texts[0]))
+    # print("setup_data-phones: ", phones)
+    # phones = phones.lstrip("{")
+    # phones = phones.rstrip("}")
+    # phones = phones.split(" ")
     
     st.session_state["app"]["p"] = phones
     print("setup_data:", len(phones))
