@@ -2,17 +2,22 @@ import os
 import json
 import yaml
 import torch
-from g2p_en import G2p
-from fs2.controlled_synthesis import read_lexicon
+import random
+import logging
 
 from dotenv import load_dotenv
+from daft_exprt.hparams import HyperParams
+from daft_exprt.synthesize import get_dictionary
+
+_logger = logging.getLogger(__name__)
+
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 ENV_PATH = os.path.join(BASE_DIR, ".env")
 load_dotenv(dotenv_path=ENV_PATH)
 
 MODE = os.environ["MODE"]
 DEBUG = os.environ["DEBUG"] == "True"
-
+# DEBUG=True
 DB = os.environ["DB"]
 DB_HOST = os.environ["DB_HOST"]
 USERNAME = "" if os.environ["USERNAME"] == "" else os.environ["USERNAME"]
@@ -30,13 +35,23 @@ for x in ["p", "e", "d"]:
         m = v["mean"]
         s = v["std"]
         if x in ["p", "e"]:
-            STATS["ps"][x][k]["min"] = (STATS["ps"][x][k]["min"] - m) / s
-            STATS["ps"][x][k]["max"] = (STATS["ps"][x][k]["max"] - m) / s
-            STATS["ps"][x][k]["-2s"] =  (m - (m+2*s)) / s
-            STATS["ps"][x][k]["+2s"] =  (m + (m+2*s)) / s
+            try:
+                STATS["ps"][x][k]["min"] = (STATS["ps"][x][k]["min"] - m) / s
+                STATS["ps"][x][k]["max"] = (STATS["ps"][x][k]["max"] - m) / s
+                STATS["ps"][x][k]["-2s"] =  (m - (m+2*s)) / s
+                STATS["ps"][x][k]["+2s"] =  (m + (m+2*s)) / s
+            except ZeroDivisionError as e:
+                STATS["ps"][x][k]["min"] = 0.
+                STATS["ps"][x][k]["max"] = 0.
+                STATS["ps"][x][k]["-2s"] = 0.
+                STATS["ps"][x][k]["+2s"] = 0.
         else:
-            STATS["ps"][x][k]["-2s"] =  round((m - (m+2*s)) / s)
-            STATS["ps"][x][k]["+2s"] =  round((m + (m+2*s)) / s)
+            try:
+                STATS["ps"][x][k]["-2s"] =  round((m - (m+2*s)) / s)
+                STATS["ps"][x][k]["+2s"] =  round((m + (m+2*s)) / s)
+            except ZeroDivisionError as e:
+                STATS["ps"][x][k]["-2s"] =  0.
+                STATS["ps"][x][k]["+2s"] =  0.
 
         if  STATS["ps"][x][k]["-2s"] < STATS["ps"][x][k]["min"]:
             STATS["ps"][x][k]["-2s"] = STATS["ps"][x][k]["min"]
@@ -46,28 +61,15 @@ for x in ["p", "e", "d"]:
 
 STATS["gs"] = json.loads(open(config["stats"]["global_stats"]).read())
 
+hparams = HyperParams(**json.load(open(config["daft_config_path"])))
+
 print(STATS["ps"])
+dictionary = get_dictionary(hparams)
+# define cudnn variables
+random.seed(hparams.seed)
+torch.manual_seed(hparams.seed)
+torch.backends.cudnn.deterministic = True
+_logger.warning('You have chosen to seed training. This will turn on the CUDNN deterministic setting, '
+                'which can slow down your training considerably! You may see unexpected behavior when '
+                'restarting from checkpoints.\n')
 
-class Args:
-    restore_step = config["inference_config"]["restore_step"]
-    mode = config["inference_config"]["mode"]
-    pitch_control = config["inference_config"]["pitch_control"]
-    energy_control = config["inference_config"]["energy_control"]
-    duration_control = config["inference_config"]["duration_control"]
-    t = train_config = config["train_config_path"]
-    m = model_config = config["model_config_path"]
-    p = preprocess_config = config["preprocess_config_path"]
-    speaker_id = config["inference_config"]["speaker_id"]
-
-args = Args()
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-preprocess_config = yaml.load(
-        open(args.preprocess_config, "r"), Loader=yaml.FullLoader
-    )
-model_config = yaml.load(open(args.model_config, "r"), Loader=yaml.FullLoader)
-train_config = yaml.load(open(args.train_config, "r"), Loader=yaml.FullLoader)
-configs = (preprocess_config, model_config, train_config)
-
-g2p = G2p()
-lexicon = read_lexicon(preprocess_config["path"]["lexicon_path"])

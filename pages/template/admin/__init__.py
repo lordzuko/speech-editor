@@ -6,7 +6,6 @@ import streamlit as st
 from utils import make_hashes
 from utils.db import delete_account, update_password, fetch_annotators
 from utils.models import Users, Projects
-from streamlit_tags import st_tags
 from pages.template.annotator import annotator_landing
 
 def admin_landing():

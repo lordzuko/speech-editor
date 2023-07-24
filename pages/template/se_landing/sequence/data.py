@@ -5,26 +5,32 @@ import json
 import streamlit as st
 from operator import itemgetter
 # from fs2.text import sequence_to_text_extended
-from fs2.text import sequence_to_text
-from fs2.controlled_synthesis import  preprocess_single, synthesize, preprocess_english
-from config import lexicon, g2p, args, preprocess_config, configs, STATS
-from config import args, configs, device, model_config, preprocess_config, DEBUG
+# from fs2.text import sequence_to_text
+# from fs2.controlled_synthesis import  preprocess_single, synthesize, preprocess_english
+# from config import lexicon, g2p, args, preprocess_config, configs, STATS
+# from config import args, configs, device, model_config, preprocess_config, DEBUG
 from copy import deepcopy
+from daft_exprt.synthesize import synthesize
+from config import hparams, DEBUG, STATS
 
-def setup_data(texts, words, idxs):
+def setup_data(words, phones, idxs):
     """
     Setup the application data to deal with words, phone, mapping etc.
     """
-    print("setup_data-text: ", list(texts[0]))
+    print("setup_data-text: ", list(st.session_state["app"]["phone_sents"]))
+    print("ignore_idxs: ", st.session_state["app"]["ignore_idxs"])
     # phones = sequence_to_text_extended(list(texts[0]))
-    phones = sequence_to_text(list(texts[0]))
-    print("setup_data-phones: ", phones)
-    phones = phones.lstrip("{")
-    phones = phones.rstrip("}")
-    phones = phones.split(" ")
+    # phones = sequence_to_text(list(texts[0]))
+    # print("setup_data-phones: ", phones)
+    # phones = phones.lstrip("{")
+    # phones = phones.rstrip("}")
+    # phones = phones.split(" ")
     
     st.session_state["app"]["p"] = phones
-    print("setup_data:", len(phones))
+    print("setup_data-phones:", phones, len(phones))
+
+    print("setup_data-words:", words, len(words))
+    print("setup_data-idx:", idxs, len(idxs))
     st.session_state["app"]["w"] = words
     st.session_state["app"]["idxs"] = idxs
 
@@ -35,8 +41,8 @@ def setup_data(texts, words, idxs):
     st.session_state["app"]["w2p"] = {}
     c = 0
     for i, w in enumerate(words):
-        st.session_state["app"]["w2p"][i] = list(range(c,c+idxs[i]))
-        c+=idxs[i]
+        st.session_state["app"]["w2p"][i] = list(range(c, idxs[i]))
+        c = idxs[i]
     print(st.session_state["app"]["w2p"])
 
 def variance_control():
@@ -53,24 +59,28 @@ def process_unedited():
     
     with torch.no_grad():
 
-        control_values, batchs = preprocess_single(st.session_state["app"]["text"], 
-                                                lexicon, 
-                                                g2p, 
-                                                args, 
-                                                preprocess_config)
+        # control_values, batchs = preprocess_single(st.session_state["app"]["text"], 
+        #                                         lexicon, 
+        #                                         g2p, 
+        #                                         args, 
+        #                                         preprocess_config)
         
-        output, wavdata = synthesize(st.session_state["model"], 
-                            configs, 
-                            st.session_state["vocoder"], 
-                            batchs, 
-                            control_values)
+        # output, wavdata = synthesize(st.session_state["model"], 
+        #                     configs, 
+        #                     st.session_state["vocoder"], 
+        #                     batchs, 
+        #                     control_values)
+        control_values, wavdata = synthesize(st.session_state["model"], 
+                                             st.session_state["vocoder"],
+                                             st.session_state["app"]["phone_sents"], 
+                                             hparams)
 
         if "fc" not in st.session_state["app"]:
             st.session_state["app"]["fc"] = {}
             st.session_state["app"]["fc"]["phone"] = {
-                "p": output[2].detach().cpu().numpy(),
-                "e": output[3].detach().cpu().numpy(),
-                "d": output[5].detach().cpu().numpy()
+                "p": control_values["p"],
+                "e": control_values["e"],
+                "d": control_values["d"]
             }
 
             if DEBUG:
@@ -108,6 +118,8 @@ def update_phone_variance():
         e_mean = st.session_state["app"]["fc"]["word"]["e"][0][i]
 
         for pi in st.session_state["app"]["w2p"][i]:
+            print("||| -> ", st.session_state["app"]["fc"]["scaling"]["d"][0])
+            print("||| -> ", st.session_state["app"]["fc"]["scaling"]["d"][0][pi])
             val = round(d_mean/st.session_state["app"]["fc"]["scaling"]["d"][0][pi])
             print(pi, st.session_state["app"]["i2p"])
             phone = st.session_state["app"]["i2p"][pi]
@@ -125,12 +137,14 @@ def process_edited():
     # if DEBUG:
     prepare_mask()
 
-    control_values, batchs = preprocess_single(st.session_state["app"]["text"], 
-                                                lexicon, 
-                                                g2p, 
-                                                args, 
-                                                preprocess_config, 
-                                                st.session_state["app"]["fc"]["phone"])
+    # control_values, batchs = preprocess_single(st.session_state["app"]["text"], 
+    #                                             lexicon, 
+    #                                             g2p, 
+    #                                             args, 
+    #                                             preprocess_config, 
+    #                                             st.session_state["app"]["fc"]["phone"])
+    
+    
     if DEBUG:    
         print("\n")
         print("Edited-FC-PHONE: ") 
@@ -138,12 +152,15 @@ def process_edited():
             print(k, v)
         print("\n")
         print("-----------------------------")
-    output, wavdata = synthesize(st.session_state["model"], 
-                        configs, 
-                        st.session_state["vocoder"], 
-                        batchs, 
-                        control_values)
     
+    control_values, wavdata = synthesize(st.session_state["model"], 
+                                        st.session_state["vocoder"],
+                                        st.session_state["app"]["phone_sents"], 
+                                        hparams,
+                                        pitch_factor=st.session_state["app"]["fc"]["phone"]["p"], 
+                                        dur_factor=st.session_state["app"]["fc"]["phone"]["d"], 
+                                        energy_factor=st.session_state["app"]["fc"]["phone"]["e"])
+
     return wavdata
 
 def init_stats():
@@ -183,9 +200,18 @@ def init_stats():
         for pi in st.session_state["app"]["w2p"][i]:
             # scaling factor is avg/curr_phone_val
             # later we can scale curr_phone_val = avg/scaling_factor
-            st.session_state["app"]["fc"]["scaling"]["d"][0][pi] = d_mean/st.session_state["app"]["fc"]["phone"]["d"][0][pi]
-            st.session_state["app"]["fc"]["scaling"]["p"][0][pi] = p_mean/st.session_state["app"]["fc"]["phone"]["p"][0][pi]
-            st.session_state["app"]["fc"]["scaling"]["e"][0][pi] = e_mean/st.session_state["app"]["fc"]["phone"]["e"][0][pi]
+            if st.session_state["app"]["fc"]["phone"]["d"][0][pi] != 0.:
+                st.session_state["app"]["fc"]["scaling"]["d"][0][pi] = d_mean/st.session_state["app"]["fc"]["phone"]["d"][0][pi]
+            else:
+                st.session_state["app"]["fc"]["scaling"]["d"][0][pi] = 1.
+            if st.session_state["app"]["fc"]["phone"]["p"][0][pi] != 0.:
+                st.session_state["app"]["fc"]["scaling"]["p"][0][pi] = p_mean/st.session_state["app"]["fc"]["phone"]["p"][0][pi]
+            else:
+                st.session_state["app"]["fc"]["scaling"]["p"][0][pi] = 1.
+            if st.session_state["app"]["fc"]["phone"]["e"][0][pi] != 0.:
+                st.session_state["app"]["fc"]["scaling"]["e"][0][pi] = e_mean/st.session_state["app"]["fc"]["phone"]["e"][0][pi]
+            else:
+                st.session_state["app"]["fc"]["scaling"]["e"][0][pi] = 1.
 
 
 def cal_avg(word_idx):

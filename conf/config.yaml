@@ -1,13 +1,7 @@
-preprocess_config_path: "/work/tc046/tc046/lordzuko/work/speech-editor/conf/BC2013/preprocess.yaml"
-model_config_path: "/work/tc046/tc046/lordzuko/work/speech-editor/conf/BC2013/model.yaml"
-train_config_path: "/work/tc046/tc046/lordzuko/work/speech-editor/conf/BC2013/train.yaml"
-inference_config:
-    restore_step: 61000
-    mode: "single"
-    pitch_control: 1.0
-    energy_control: 1.0
-    duration_control: 1.0
-    speaker_id: 0
+daft_config_path: "/work/tc046/tc046/lordzuko/work/speech-editor/conf/daft_config.json"
+vocoder_config_path: "/work/tc046/tc046/lordzuko/work/speech-editor/conf/vocoder_config.json"
+daft_chkpt_path: "/work/tc046/tc046/lordzuko/work/speech-editor/assets/models/DaftExprt_best"
+vocoder_chkpt_path: "/work/tc046/tc046/lordzuko/work/speech-editor/assets/models/g_00100000"
 stats:
-    phone_stats: "/work/tc046/tc046/lordzuko/work/speech-editor/conf/phone_stats.json"
-    global_stats: "/work/tc046/tc046/lordzuko/work/speech-editor/conf/global_stats.json"
+    phone_stats: "/work/tc046/tc046/lordzuko/work/speech-editor/assets/stats/phone_stats.json"
+    global_stats: "/work/tc046/tc046/lordzuko/work/speech-editor/assets/stats/global_stats.json"

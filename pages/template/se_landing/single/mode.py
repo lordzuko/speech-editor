@@ -2,9 +2,8 @@ import streamlit as st
 import numpy as np
 from mongoengine.queryset.visitor import Q
 
-from fs2.controlled_synthesis import preprocess_english
-from config import lexicon, g2p, preprocess_config
-from config import preprocess_config
+from daft_exprt.synthesize import prepare_sentences_for_inference
+from config import hparams, dictionary
 
 
 from utils.models import Text, Annotation
@@ -35,10 +34,12 @@ def se_edit_sequence():
         text = st.session_state["app"]["text"]
 
         if not st.session_state["app"]["edit_next"]:
-            out = preprocess_english(text,lexicon, g2p, preprocess_config)
-            texts, words, idxs = np.array([out[0]]), out[1], out[2]
-            print("TEXTS: ",texts)
-            setup_data(texts, words, idxs)
+            out = prepare_sentences_for_inference([text], dictionary, hparams)
+
+            phone_sents, words, phones, idxs = out[0][0], out[0][1], out[0][2], out[0][3]
+            st.session_state["app"]["phone_sents"] = phone_sents
+            print("TEXTS: ",phone_sents)
+            setup_data(phone_sents, words, phones, idxs)
             st.markdown(f"Text: {st.session_state['app']['text']}")
             st.markdown(f"Filename: {st.session_state['app']['data']['t']['wav_name']}")
             

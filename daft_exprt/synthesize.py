@@ -16,6 +16,7 @@ from scipy.io import wavfile
 
 from shutil import copyfile
 from shutil import rmtree
+from copy import deepcopy
 
 MAX_WAV_VALUE = 32768.0
 
@@ -45,14 +46,14 @@ random.seed(1234)
     using a target sentence, a target speaker, and a target prosody
 '''
 
-def get_model(chkpt_path):
+def get_model(chkpt_path, hparams):
     gpu_available = torch.cuda.is_available()
     if gpu_available:
         checkpoint_dict = torch.load(chkpt_path, map_location=f'cuda:{0}')
     else:
         checkpoint_dict = torch.load(chkpt_path, map_location=f'cpu')
 
-    hparams = HyperParams(verbose=False, **checkpoint_dict['config_params'])
+    # hparams = HyperParams(verbose=False, **checkpoint_dict['config_params'])
     # load model
     if gpu_available:
         torch.cuda.set_device(0)
@@ -63,15 +64,15 @@ def get_model(chkpt_path):
     state_dict = {k.replace('module.', ''): v for k, v in checkpoint_dict['state_dict'].items()}
     model.load_state_dict(state_dict)    
 
-    # define cudnn variables
-    random.seed(hparams.seed)
-    torch.manual_seed(hparams.seed)
-    torch.backends.cudnn.deterministic = True
-    _logger.warning('You have chosen to seed training. This will turn on the CUDNN deterministic setting, '
-                    'which can slow down your training considerably! You may see unexpected behavior when '
-                    'restarting from checkpoints.\n')
+    # # define cudnn variables
+    # random.seed(hparams.seed)
+    # torch.manual_seed(hparams.seed)
+    # torch.backends.cudnn.deterministic = True
+    # _logger.warning('You have chosen to seed training. This will turn on the CUDNN deterministic setting, '
+    #                 'which can slow down your training considerably! You may see unexpected behavior when '
+    #                 'restarting from checkpoints.\n')
     
-    return model, hparams
+    return model
 
 
 def vocoder_infer(mels, vocoder, lengths=None):
@@ -156,6 +157,8 @@ def phonemize_sentence(sentence, dictionary, hparams):
         punctuation_end = sent_words.pop(-1)
     sent_words.append(punctuation_end)
     
+    _words = deepcopy(sent_words)
+
     # phonemize words and add word boundaries
     sentence_phonemized, unk_words = [], []
     while len(sent_words) != 0:
@@ -168,7 +171,7 @@ def phonemize_sentence(sentence, dictionary, hparams):
             sentence_phonemized.append('<unk>')
         # at this point we pass to the next word
         # we must add a word boundary between two consecutive words
-        print(sent_words)
+        # print("sent_words: ", sent_words)
         if len(sent_words) != 0:
             word_bound = sent_words.pop(0) if sent_words[0] in punctuation else whitespace
             sentence_phonemized.append(word_bound)
@@ -198,8 +201,27 @@ def phonemize_sentence(sentence, dictionary, hparams):
         os.remove(oovs_trans)
         rmtree(tmp_dir, ignore_errors=True)
 
+    nb_symbols = 0
+    word_idx = 0
+    idxs = []
+    words = []
+    phones = []
+    ignore_idxs = []
+    for item in sentence_phonemized:
+        if isinstance(item, list):  # correspond to phonemes of a word
+            nb_symbols += len(item)
+            idxs.append(nb_symbols)
+            words.append(_words[word_idx])
+            phones.extend(item)
+            word_idx += 1
+        else:  # correspond to word boundaries
+            nb_symbols += 1
+            idxs.append(nb_symbols)
+            words.append(item)
+            phones.append(item)
+            ignore_idxs.append(nb_symbols)
 
-    return sentence_phonemized
+    return sentence_phonemized, words, phones, idxs, ignore_idxs
 
 
 def prepare_sentences_for_inference(sentences, dictionary, hparams):
@@ -209,8 +231,8 @@ def prepare_sentences_for_inference(sentences, dictionary, hparams):
     phonemized_sents = []
     sentences = [s.strip() for s in sentences]
     for sent in sentences:
-        ps = phonemize_sentence(sent, dictionary, hparams)
-        phonemized_sents.append(ps)
+        ps, words, phones, idxs, ignore_idxs  = phonemize_sentence(sent, dictionary, hparams)
+        phonemized_sents.append((ps, words, phones, idxs, ignore_idxs))
     return phonemized_sents
 
 
@@ -236,7 +258,7 @@ def extract_reference_parameters(audio_ref, hparams):
 
 # generate mel-specs and synthesize audios with Griffin-Lim
 def generate_mel_specs(model, sentences, speaker_ids, refs,
-                       hparams, dur_factors, energy_factors, pitch_factors, batch_size, file_names):
+                       hparams, dur_factors, energy_factors, pitch_factors, batch_size, file_names, fine_control=False):
     model.eval()
     # set default values if prosody factors are None
     dur_factors = [None for _ in range(len(sentences))] if dur_factors is None else dur_factors
@@ -267,7 +289,7 @@ def generate_mel_specs(model, sentences, speaker_ids, refs,
             batch_predictions =  generate_batch_mel_specs(
                                         model, batch_sentences, batch_refs, batch_dur_factors,
                                         batch_energy_factors, batch_pitch_factors, pitch_transform,
-                                        batch_speaker_ids, batch_file_names, hparams)
+                                        batch_speaker_ids, batch_file_names, hparams, fine_control=fine_control)
 
             predictions.update(batch_predictions)
 
@@ -419,7 +441,7 @@ def to_cpu(duration_preds, durations_int, energy_preds, pitch_preds,
 
 def generate_batch_mel_specs(model, batch_sentences, batch_refs, batch_dur_factors,
                                 batch_energy_factors, batch_pitch_factors, pitch_transform,
-                                batch_speaker_ids, batch_file_names, hparams):
+                                batch_speaker_ids, batch_file_names, hparams, fine_control=False):
 
     # collate batch tensors
     symbols, dur_factors, energy_factors, pitch_factors, input_lengths, \
@@ -433,7 +455,7 @@ def generate_batch_mel_specs(model, batch_sentences, batch_refs, batch_dur_facto
               energy_refs, pitch_refs, mel_spec_refs, ref_lengths, speaker_ids)
     
 
-    encoder_preds, decoder_preds, alignments = model.inference(inputs, pitch_transform, hparams)
+    encoder_preds, decoder_preds, alignments = model.inference(inputs, pitch_transform, hparams, fine_control=fine_control)
 
     # parse outputs
     duration_preds, durations_int, energy_preds, pitch_preds, input_lengths = encoder_preds
@@ -461,22 +483,84 @@ def generate_batch_mel_specs(model, batch_sentences, batch_refs, batch_dur_facto
         file_name = file_names[line_idx]
         # store predictions 
         predictions[f'{file_name}'] = [duration_pred, duration_int, energy_pred, pitch_pred, mel_spec_pred, weight]
-
     return predictions
+
+def synthesize(model,vocoder, phonemeized_sents, hparams, pitch_factor=None, dur_factor=None, energy_factor=None, fine_control=False):
+    # style_bank = os.path.join(PROJECT_ROOT, 'scripts', 'style_bank', 'english')
+    ref_path = "/scratch/space1/tc046/lordzuko/work/data/raw_data/BC2013_daft_orig/CB/wavs/CB-EM-04-96.wav"
+    ref_parameters = extract_reference_parameters(ref_path, hparams)
+
+    # dur_factor = 1 #1.25  # decrease speed
+    pitch_transform = 'add'  # pitch shift
+    # pitch_factor = 0  # 50Hz
+    # energy_factor = 1
+    filenames = ["a.wav"]
+    # add duration factors for each symbol in the sentence
+    dur_factors = [] if dur_factor is not None else None
+    energy_factors = [] if energy_factor is not None else None
+    pitch_factors = [pitch_transform, []] if pitch_factor is not None else None
+    # for sentence in phonemeized_sents:
+        # count number of symbols in the sentence
+        # nb_symbols = 0
+        # for item in sentence:
+        #     if isinstance(item, list):  # correspond to phonemes of a word
+        #         nb_symbols += len(item)
+        #     else:  # correspond to word boundaries
+        #         nb_symbols += 1
+        # print(nb_symbols)
+        # append to lists
+    if dur_factors is not None:
+        dur_factors = dur_factor
+    if energy_factors is not None:
+        energy_factors = energy_factor
+    if pitch_factors is not None:
+        pitch_factors[1] = pitch_factor
+
+    speaker_ids = [0]*len(phonemeized_sents)
+    refs = [ref_parameters]
+    batch_size = 1
+    # generate mel-specs and synthesize audios with Griffin-Lim
+    batch_predictions = generate_mel_specs(model, phonemeized_sents, speaker_ids, refs,
+                       hparams, dur_factors, energy_factors, pitch_factors, batch_size, filenames, fine_control=fine_control)
+
+    # duration_pred, duration_int, energy_pred, pitch_pred    
+    control_values = {}
+    v = batch_predictions["a.wav"]
+
+    control_values["d"] = v[1].unsqueeze(0).detach().cpu().numpy()
+    control_values["e"] = v[2].unsqueeze(0).detach().cpu().numpy()
+    control_values["p"] = v[3].unsqueeze(0).detach().cpu().numpy()
+    mels = v[4].unsqueeze(0)
+    wavs = vocoder_infer(mels, vocoder, lengths=None)
+    return control_values, wavs[0]
 
 if __name__ == "__main__":
     chkpt_path = "/work/tc046/tc046/lordzuko/work/daft-exprt/trainings/daft_bc2013_v1/checkpoints/DaftExprt_best"
-    config_path = "/work/tc046/tc046/lordzuko/work/daft-exprt/hifi_gan/config_v1.json"
+    vocoder_config_path = "/work/tc046/tc046/lordzuko/work/daft-exprt/hifi_gan/config_v1.json"
     vocoder_chkpt_path = "/work/tc046/tc046/lordzuko/work/daft-exprt/trainings/hifigan/checkpoints/g_00100000"
-    model, hparams = get_model(chkpt_path)
-    vocoder = get_vocoder(config_path, vocoder_chkpt_path)
+    daft_config_path = "/work/tc046/tc046/lordzuko/work/speech-editor/conf/daft_config.json"
+    hparams = HyperParams(**json.load(open(daft_config_path)))
+    random.seed(hparams.seed)
+    torch.manual_seed(hparams.seed)
+    torch.backends.cudnn.deterministic = True
+    _logger.warning('You have chosen to seed training. This will turn on the CUDNN deterministic setting, '
+                    'which can slow down your training considerably! You may see unexpected behavior when '
+                    'restarting from checkpoints.\n')
+
+    model = get_model(chkpt_path, hparams)
+    vocoder = get_vocoder(vocoder_config_path, vocoder_chkpt_path)
     dictionary = get_dictionary(hparams)
-    print(vocoder)
+    # print(vocoder)
     text = "it is possible to wake up a man who sleeps but not who clings to sleep while fully awake."
     sentences = [text]
     phonemeized_sents = prepare_sentences_for_inference(sentences,dictionary, hparams)
     filenames = ["a.wav"]
-    print(phonemeized_sents)
+    print(phonemeized_sents[0][0])
+    print(phonemeized_sents[0][1])
+    print(phonemeized_sents[0][2])
+    print(phonemeized_sents[0][3])
+    print(phonemeized_sents[0][4])
+    phonemeized_sents = [phonemeized_sents[0][0]]
     style_bank = os.path.join(PROJECT_ROOT, 'scripts', 'style_bank', 'english')
     # ref_path = "/scratch/space1/tc046/lordzuko/work/data/raw_data/BC2013_daft_orig/CB/wavs/CB-EM-01-05.wav"
     ref_path = "/scratch/space1/tc046/lordzuko/work/data/raw_data/BC2013_daft_orig/CB/wavs/CB-EM-04-96.wav"
@@ -502,12 +586,16 @@ if __name__ == "__main__":
         print(nb_symbols)
         # append to lists
         if dur_factors is not None:
+            print("dur_factors")
             dur_factors.append([dur_factor for _ in range(nb_symbols)])
         if energy_factors is not None:
+            print("energy_factors")
             energy_factors.append([energy_factor for _ in range(nb_symbols)])
         if pitch_factors is not None:
+            print("pitch_factors")
             pitch_factors[1].append([pitch_factor for _ in range(nb_symbols)])
 
+    print("factors: ", len(pitch_factors[1][0]), len(energy_factors[0]), len(dur_factors[0]))
     speaker_ids = [0]*len(sentences)
     refs = [ref_parameters]
     batch_size = 1

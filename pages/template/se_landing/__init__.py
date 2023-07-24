@@ -2,15 +2,9 @@ import streamlit as st
 
 from utils.session import get_state, init_session_state
 from utils.db import fetch_annotated
+from utils.tts_model import load_model, load_vocoder
 
-from config import preprocess_config
-from config import args as _args
-from config import configs as _configs
-from config import device as _device
-from config import model_config as _model_config
-
-from fs2.utils.model import get_model, get_vocoder
-from config import preprocess_config,  MODE
+from config import  MODE, hparams
 
 from .sequence.mode import se_edit_sequence
 from .single.mode import se_edit_single
@@ -31,17 +25,18 @@ def se_ui():
                 if not get_state(st, "model"):
                     # Get model
                     print("Loading Model...")
-                    init_session_state(st, "model", get_model(_args, _configs, _device, _train=False))
+                    # init_session_state(st, "model", get_model(_args, _configs, _device, _train=False))
+                    init_session_state(st, "model", load_model())
                     print("Model Loaded")
                 
                 if not get_state(st, "vocoder"):
                     # Load vocoder
                     print("Loading Vocoder...")
-                    init_session_state(st, "vocoder", get_vocoder(_model_config, _device))
+                    init_session_state(st, "vocoder", load_vocoder())
                     print("Vocoder Loaded")
 
                 if not get_state(st, "sampling_rate"):
-                    init_session_state(st, "sampling_rate", preprocess_config["preprocessing"]["audio"]["sampling_rate"])
+                    init_session_state(st, "sampling_rate", hparams.sampling_rate)
     
         st.header("Speech Editor")
         if MODE == "single":

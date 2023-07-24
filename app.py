@@ -25,10 +25,10 @@ def main():
         except Exception:
             raise Exception("mongo server is down.")
 
-    # if DEBUG:
-    #     se_ui()
-    # else:
-    login_screen()
+    if DEBUG:
+        se_ui()
+    else:
+        login_screen()
 
 
 if __name__ == "__main__":

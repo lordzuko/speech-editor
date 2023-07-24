@@ -889,7 +889,7 @@ class DaftExprt(nn.Module):
         
         return pitch_preds
     
-    def inference(self, inputs, pitch_transform, hparams):
+    def inference(self, inputs, pitch_transform, hparams, fine_control=False):
         ''' Inference function of DaftExprt
         '''
         # symbols = (B, L_max)
@@ -912,6 +912,7 @@ class DaftExprt(nn.Module):
         enc_outputs = self.phoneme_encoder(symbols, encoder_film, input_lengths)  # (B, L_max, hidden_embed_dim)
         # predict prosody parameters
         duration_preds, energy_preds, pitch_preds = self.prosody_predictor(enc_outputs, prosody_pred_film, input_lengths)  # (B, L_max)
+
         
         # multiply durations by duration factors and extract int durations
         duration_preds *= dur_factors  # (B, L_max)
@@ -929,6 +930,7 @@ class DaftExprt(nn.Module):
             pitch_preds = self.pitch_multiply(pitch_preds, pitch_factors)  # (B, L_max)
         else:
             raise NotImplementedError
+
         
         # perform Gaussian upsampling on symbols sequence
         # symbols_upsamp = (B, T_max, hidden_embed_dim)

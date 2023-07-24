@@ -159,7 +159,7 @@ class HyperParams(object):
             assert(value is not None), _logger.error(f'Hyper-parameter "{param}" is None -- please specify a value')
 
         # give a default value to hyper-parameters that have not been specified in **kwargs
-        self._set_default_hyper_params(verbose=verbose)
+        # self._set_default_hyper_params(verbose=verbose)
 
     def _set_default_hyper_params(self, verbose):
         ''' Give a default value to hyper-parameters that have not been specified in **kwargs
@@ -168,6 +168,7 @@ class HyperParams(object):
         '''
         # update MFA paths
         self.update_mfa_paths()
+
         # set stats if not already set
         stats_file = os.path.join(self.output_directory, 'stats.json')
         if len(self.stats) == 0 and os.path.isfile(stats_file):
