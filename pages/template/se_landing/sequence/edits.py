@@ -1,8 +1,16 @@
 import streamlit as st
 import matplotlib.pyplot as plt
-
-
+import librosa
+from config import ref_style
 from .data import process_unedited, process_edited
+from daft_exprt.extract_features import rescale_wav_to_float32
+
+def setup_ref_speech():
+    st.markdown("Reference Audio:")
+    style = st.session_state["app"]["data"]["t"]["ref_style"]
+    wav, fs = librosa.load(ref_style[style], sr=st.session_state["sampling_rate"])
+    wav = rescale_wav_to_float32(wav)
+    st.audio(wav, sample_rate=st.session_state["sampling_rate"])
 
 def setup_speech_unedited():
     """

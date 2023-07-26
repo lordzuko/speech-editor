@@ -9,7 +9,7 @@ from utils.models import Text
 from utils.db import handle_submit
 from .data import setup_data
 from .slider import setup_sliders
-from .edits import setup_speech_unedited
+from .edits import setup_speech_unedited, setup_ref_speech
 from ..utils import reset_sequence, save
 
 def se_edit_sequence():
@@ -47,14 +47,16 @@ def se_edit_sequence():
             suggestions = [f"{w}-{i}" for i,w in enumerate(st.session_state["app"]["w"])]
             st.session_state["app"]["suggestions"] = suggestions
         
-        col1, col2 = st.columns([2, 2])
+        col1, col2, col3 = st.columns([1, 1, 1])
         with col1:
+            setup_ref_speech()
+        with col2:
             setup_speech_unedited()
 
         if st.session_state["app"]["suggestions"]:
             if "unedited" in st.session_state["app"]:
                 if "wav" in st.session_state["app"]["unedited"]:
-                    setup_sliders(column=col2)
+                    setup_sliders(column=col3)
 
         
         st.markdown("---")

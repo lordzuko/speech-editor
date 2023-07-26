@@ -1,6 +1,9 @@
 .PHONY: all
 
-all:  python_requirements MFA_thirdparty MFA_pretrained
+all:  linux_requirements python_requirements MFA_thirdparty MFA_pretrained
+
+linux_requirements:
+	sudo apt-get update && sudo apt-get install -y libsndfile1 libopenblas-dev
 
 python_requirements:
 	conda env update -f environment.yaml

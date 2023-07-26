@@ -66,6 +66,7 @@ class Text(Document): # pylint-disable: too-few-public-methods
     """
     meta = {"collection": "text"}
     wav_name = StringField(required=True)
+    ref_style = StringField(required=True)
     text = StringField(required=True)
     utt_len = IntField(required=True)
     

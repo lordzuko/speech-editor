@@ -63,7 +63,7 @@ for x in ["p", "e", "d"]:
 STATS["gs"] = json.loads(open(config["stats"]["global_stats"]).read())
 
 hparams = HyperParams(**json.load(open(config["daft_config_path"])))
-
+ref_style = config["ref_style"]
 print(STATS["ps"])
 dictionary = get_dictionary(hparams)
 # define cudnn variables

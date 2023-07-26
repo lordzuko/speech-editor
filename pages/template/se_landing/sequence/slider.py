@@ -1,12 +1,32 @@
+import numpy as np
 import streamlit as st
 import matplotlib.pyplot as plt
 from .data import sample_gauss, standardize
 from .edits import setup_speech_edited
 from config import DEBUG, STATS, ignore_chars
 
+
+def process_pitch_value(p_orig, p_change):
+    
+    p_int = np.exp(sample_gauss(p_orig, STATS["gs"]["p"]["mean"],STATS["gs"]["p"]["std"]))
+    print("PITCH BEFORE: ", p_int)
+    p_new = p_int + p_change
+    print("PITCH AFTER: ", p_new)
+    p_std = standardize(np.log(p_new), STATS["gs"]["p"]["mean"],STATS["gs"]["p"]["std"])
+    return p_std
+
+def process_energy_value(e_orig, e_change):
+    e_float = sample_gauss(e_orig, STATS["gs"]["e"]["mean"],STATS["gs"]["e"]["std"])
+    print("ENERGY BEFORE: ", e_float)
+    e_new = e_float + e_change
+    print("ENERGY AFTER: ", e_new)
+    e_std = standardize(e_new, STATS["gs"]["e"]["mean"],STATS["gs"]["e"]["std"])
+    return e_std
+
 def setup_bias_slider(column):
     with st.form(key=f"form-global"):
         col1, col2, col3, col4 = st.columns([2, 2, 2, 2])
+        
 
         with col2:
             gl_d = st.slider("Global Duration",
@@ -16,10 +36,10 @@ def setup_bias_slider(column):
                                 key=f"duration-global")
         with col3:
             gl_p = st.slider("Global Pitch",
-                                value=0.,
-                                min_value=-50.,
-                                max_value=50.,
-                                step=1.,
+                                value=0,
+                                min_value=-50,
+                                max_value=50,
+                                step=1,
                                 key=f"pitch-global")
         with col4:
             gl_e = st.slider("Global Energy",
@@ -33,26 +53,22 @@ def setup_bias_slider(column):
             submitted = st.form_submit_button(f"Utt Level")
             
             if submitted:
-                
-                f0_control = standardize(gl_p + STATS["gs"]["p"]["mean"], STATS["gs"]["p"]["mean"],STATS["gs"]["p"]["std"])
-                energy_control = standardize(gl_e + STATS["gs"]["e"]["mean"], STATS["gs"]["e"]["mean"],STATS["gs"]["e"]["std"])
-
 
                 st.session_state["app"]["fc"]["gl_d"] = gl_d
-                st.session_state["app"]["fc"]["gl_p"] = f0_control
-                st.session_state["app"]["fc"]["gl_e"] = energy_control
+                st.session_state["app"]["fc"]["gl_p"] = gl_p
+                st.session_state["app"]["fc"]["gl_e"] = gl_e
 
 
                 st.session_state["app"]["fc"]["word"]["d"][0] = st.session_state["app"]["unedited"]["word"]["d"][0] * gl_d
-                st.session_state["app"]["fc"]["word"]["p"][0] = st.session_state["app"]["unedited"]["word"]["p"][0] + f0_control
-                st.session_state["app"]["fc"]["word"]["e"][0] = st.session_state["app"]["unedited"]["word"]["e"][0] + energy_control
-
+                st.session_state["app"]["fc"]["word"]["p"][0] = process_pitch_value(st.session_state["app"]["unedited"]["word"]["p"][0], gl_p)
+                st.session_state["app"]["fc"]["word"]["e"][0] = process_energy_value(st.session_state["app"]["unedited"]["word"]["e"][0], gl_e)
+        
 
                 
-                if DEBUG:
-                    st.markdown(gl_d)
-                    st.markdown(f0_control)
-                    st.markdown(energy_control)
+                # if DEBUG:
+                # st.markdown(gl_d)
+                # st.markdown(f0_control)
+                # st.markdown(energy_control)
                     
                 with column:
                     setup_speech_edited()
@@ -94,19 +110,19 @@ def setup_sliders(column):
                     key=f"duration-{word}")
 
                 # duration_control = standardize(duration_control, STATS["gs"]["d"]["mean"],STATS["gs"]["d"]["std"])
-                st.session_state["app"]["fc"]["word"]["d"][0][idx] *= duration_control
+                st.session_state["app"]["fc"]["word"]["d"][0][idx] = st.session_state["app"]["unedited"]["word"]["d"][0][idx] * duration_control
                 if DEBUG:
                     st.markdown(duration_control)
                 
             with col3:
                 p = st.session_state["app"]["fc"]["word"]["p"][0][idx]
                 f0_control = st.slider("Pitch Scale", 
-                    value=float(sample_gauss(p, STATS["gs"]["p"]["mean"],STATS["gs"]["p"]["std"])), 
+                    value=float(np.exp(sample_gauss(p, STATS["gs"]["p"]["mean"],STATS["gs"]["p"]["std"]))), 
                     min_value=0., 
-                    max_value=float(round(sample_gauss(3, STATS["gs"]["p"]["mean"],STATS["gs"]["p"]["std"]))),
+                    max_value=float(np.exp(round(sample_gauss(3, STATS["gs"]["p"]["mean"],STATS["gs"]["p"]["std"])))),
                     step=1.,
                     key=f"pitch-{word}")
-                f0_control = standardize(f0_control, STATS["gs"]["p"]["mean"],STATS["gs"]["p"]["std"])
+                f0_control = standardize(np.log(f0_control), STATS["gs"]["p"]["mean"],STATS["gs"]["p"]["std"])
                 if DEBUG:
                     st.markdown(f0_control)
                 st.session_state["app"]["fc"]["word"]["p"][0][idx] = f0_control
@@ -116,7 +132,7 @@ def setup_sliders(column):
                 energy_control = st.slider("Energy Scale", 
                     value=float(sample_gauss(e, STATS["gs"]["e"]["mean"],STATS["gs"]["e"]["std"])), 
                     min_value=0., 
-                    max_value=float(round(sample_gauss(3, STATS["gs"]["e"]["mean"],STATS["gs"]["e"]["std"]))),
+                    max_value=float(round(sample_gauss(1.5, STATS["gs"]["e"]["mean"],STATS["gs"]["e"]["std"]))),
                     step=1.,
                     key=f"energy-{word}")
                 energy_control = standardize(energy_control, STATS["gs"]["e"]["mean"],STATS["gs"]["e"]["std"])
