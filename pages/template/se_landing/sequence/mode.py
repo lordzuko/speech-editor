@@ -1,9 +1,12 @@
+import os
+import uuid
 import streamlit as st
 import numpy as np
 from mongoengine.queryset.visitor import Q
+from scipy.io import wavfile
 
 from daft_exprt.synthesize import prepare_sentences_for_inference
-from config import hparams, dictionary
+from config import hparams, dictionary, edited_path
 
 from utils.models import Text
 from utils.db import handle_submit
@@ -27,6 +30,8 @@ def se_edit_sequence():
     
     st.session_state["app"]["text"] = st.session_state["app"]["data"]["t"]["text"]
     st.session_state["app"]["wav_name"] = st.session_state['app']['data']['t']['wav_name']
+    if not st.session_state["app"].get("save_wav_name"):
+        st.session_state["app"]["save_wav_name"] = str(uuid.uuid4()) + ".wav"
     st.session_state["app"]["edit_next"] = False
     text = st.session_state["app"]["text"]
 
@@ -66,8 +71,12 @@ def se_edit_sequence():
             next_bt = st.button("Next")
             if next_bt:
                 st.info("Saving to DB")
-                save(st.session_state["app"]["wav_name"], username=st.session_state["login"]["username"])
+                # save(st.session_state["app"]["wav_name"], username=st.session_state["login"]["username"])
                 print("save value: ", handle_submit())
+                # SAVE FILE
+                filename = st.session_state["app"]["save_wav_name"]
+                wavdata = st.session_state["app"]["edited"]["wav"]
+                wavfile.write(f"{os.path.join(edited_path, filename)}", st.session_state["sampling_rate"], wavdata)
                 st.success("Saved!")
                 reset_sequence()
 

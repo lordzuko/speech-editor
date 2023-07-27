@@ -5,6 +5,9 @@ vocoder_chkpt_path: "/home/lordzuko/work/speech-editor/assets/models/g_00100000"
 stats:
     phone_stats: "/home/lordzuko/work/speech-editor/assets/stats/phone_stats.json"
     global_stats: "/home/lordzuko/work/speech-editor/assets/stats/global_stats.json"
+save:
+    unedited: "/home/lordzuko/work/speech-editor/data/unedited"
+    edited: "/home/lordzuko/work/speech-editor/data/edited"
 ref_style:
     fast_speech: "/home/lordzuko/work/speech-editor/assets/ref_style/CB-EM-04-96.wav"
     slow_speech: ""

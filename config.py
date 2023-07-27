@@ -74,3 +74,5 @@ _logger.warning('You have chosen to seed training. This will turn on the CUDNN d
                 'which can slow down your training considerably! You may see unexpected behavior when '
                 'restarting from checkpoints.\n')
 ignore_chars = list(whitespace) + list(punctuation) + list(eos)
+unedited_path = config["save"]["unedited"]
+edited_path = config["save"]["edited"]

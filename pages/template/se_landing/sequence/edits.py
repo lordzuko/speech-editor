@@ -1,9 +1,13 @@
+import os
+import uuid
 import streamlit as st
 import matplotlib.pyplot as plt
 import librosa
-from config import ref_style
+from config import ref_style, unedited_path
 from .data import process_unedited, process_edited
 from daft_exprt.extract_features import rescale_wav_to_float32
+from scipy.io import wavfile
+
 
 def setup_ref_speech():
     st.markdown("Reference Audio:")
@@ -24,6 +28,10 @@ def setup_speech_unedited():
         st.markdown("Original:")
         st.audio(st.session_state["app"]["unedited"]["wav"],
                     sample_rate=st.session_state["sampling_rate"])
+        # SAVE FILE
+        filename = st.session_state["app"]["save_wav_name"]
+        wavfile.write(f"{os.path.join(unedited_path, filename)}", st.session_state["sampling_rate"], wavdata)
+        
     else:
         st.markdown("Original:")
         st.audio(st.session_state["app"]["unedited"]["wav"],
