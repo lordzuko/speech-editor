@@ -54,6 +54,7 @@ class Annotation(Document): # pylint-disable: too-few-public-methods
     i2p = DictField()
     i2w = DictField()
     w2p = DictField()
+    save_wav_name = StringField()
     created_at = DateTimeField()
     tagging_status = StringField()
     tagger = StringField(default="")
@@ -66,6 +67,7 @@ class Text(Document): # pylint-disable: too-few-public-methods
     """
     meta = {"collection": "text"}
     wav_name = StringField(required=True)
+    ref_style = StringField(required=True)
     text = StringField(required=True)
     utt_len = IntField(required=True)
     

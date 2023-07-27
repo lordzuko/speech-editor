@@ -493,9 +493,8 @@ def generate_batch_mel_specs(model, batch_sentences, batch_refs, batch_dur_facto
         predictions[f'{file_name}'] = [duration_pred, duration_int, energy_pred, pitch_pred, mel_spec_pred, weight]
     return predictions
 
-def synthesize(model,vocoder, phonemeized_sents, hparams, pitch_factor=None, dur_factor=None, energy_factor=None, fine_control=False):
+def synthesize(model,vocoder, phonemeized_sents, hparams, ref_path, pitch_factor=None, dur_factor=None, energy_factor=None, fine_control=False):
     # style_bank = os.path.join(PROJECT_ROOT, 'scripts', 'style_bank', 'english')
-    ref_path = "/scratch/space1/tc046/lordzuko/work/data/raw_data/BC2013_daft_orig/CB/wavs/CB-EM-04-96.wav"
     ref_parameters = extract_reference_parameters(ref_path, hparams)
 
     # dur_factor = 1 #1.25  # decrease speed

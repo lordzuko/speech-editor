@@ -1,15 +1,18 @@
+import os
+import uuid
 import streamlit as st
 import numpy as np
 from mongoengine.queryset.visitor import Q
+from scipy.io import wavfile
 
 from daft_exprt.synthesize import prepare_sentences_for_inference
-from config import hparams, dictionary
+from config import hparams, dictionary, edited_path
 
 from utils.models import Text
 from utils.db import handle_submit
 from .data import setup_data
 from .slider import setup_sliders
-from .edits import setup_speech_unedited
+from .edits import setup_speech_unedited, setup_ref_speech
 from ..utils import reset_sequence, save
 
 def se_edit_sequence():
@@ -27,6 +30,8 @@ def se_edit_sequence():
     
     st.session_state["app"]["text"] = st.session_state["app"]["data"]["t"]["text"]
     st.session_state["app"]["wav_name"] = st.session_state['app']['data']['t']['wav_name']
+    if not st.session_state["app"].get("save_wav_name"):
+        st.session_state["app"]["save_wav_name"] = str(uuid.uuid4()) + ".wav"
     st.session_state["app"]["edit_next"] = False
     text = st.session_state["app"]["text"]
 
@@ -47,14 +52,16 @@ def se_edit_sequence():
             suggestions = [f"{w}-{i}" for i,w in enumerate(st.session_state["app"]["w"])]
             st.session_state["app"]["suggestions"] = suggestions
         
-        col1, col2 = st.columns([2, 2])
+        col1, col2, col3 = st.columns([1, 1, 1])
         with col1:
+            setup_ref_speech()
+        with col2:
             setup_speech_unedited()
 
         if st.session_state["app"]["suggestions"]:
             if "unedited" in st.session_state["app"]:
                 if "wav" in st.session_state["app"]["unedited"]:
-                    setup_sliders(column=col2)
+                    setup_sliders(column=col3)
 
         
         st.markdown("---")
@@ -64,8 +71,12 @@ def se_edit_sequence():
             next_bt = st.button("Next")
             if next_bt:
                 st.info("Saving to DB")
-                save(st.session_state["app"]["wav_name"], username=st.session_state["login"]["username"])
+                # save(st.session_state["app"]["wav_name"], username=st.session_state["login"]["username"])
                 print("save value: ", handle_submit())
+                # SAVE FILE
+                filename = st.session_state["app"]["save_wav_name"]
+                wavdata = st.session_state["app"]["edited"]["wav"]
+                wavfile.write(f"{os.path.join(edited_path, filename)}", st.session_state["sampling_rate"], wavdata)
                 st.success("Saved!")
                 reset_sequence()
 

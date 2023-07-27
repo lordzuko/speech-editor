@@ -11,7 +11,7 @@ from operator import itemgetter
 # from config import args, configs, device, model_config, preprocess_config, DEBUG
 from copy import deepcopy
 from daft_exprt.synthesize import synthesize
-from config import hparams, DEBUG, STATS
+from config import hparams, DEBUG, STATS, ref_style
 
 def setup_data(words, phones, idxs):
     """
@@ -59,21 +59,11 @@ def process_unedited():
     
     with torch.no_grad():
 
-        # control_values, batchs = preprocess_single(st.session_state["app"]["text"], 
-        #                                         lexicon, 
-        #                                         g2p, 
-        #                                         args, 
-        #                                         preprocess_config)
-        
-        # output, wavdata = synthesize(st.session_state["model"], 
-        #                     configs, 
-        #                     st.session_state["vocoder"], 
-        #                     batchs, 
-        #                     control_values)
         control_values, wavdata = synthesize(st.session_state["model"], 
                                              st.session_state["vocoder"],
                                              st.session_state["app"]["phone_sents"], 
-                                             hparams)
+                                             hparams,
+                                             ref_style[st.session_state["app"]["data"]["t"]["ref_style"]])
 
         if "fc" not in st.session_state["app"]:
             st.session_state["app"]["fc"] = {}
@@ -133,14 +123,6 @@ def process_edited():
     update_phone_variance()
     # if DEBUG:
     prepare_mask()
-
-    # control_values, batchs = preprocess_single(st.session_state["app"]["text"], 
-    #                                             lexicon, 
-    #                                             g2p, 
-    #                                             args, 
-    #                                             preprocess_config, 
-    #                                             st.session_state["app"]["fc"]["phone"])
-    
     
     if DEBUG:    
         print("\n")
@@ -154,6 +136,7 @@ def process_edited():
                                         st.session_state["vocoder"],
                                         st.session_state["app"]["phone_sents"], 
                                         hparams,
+                                        ref_style[st.session_state["app"]["data"]["t"]["ref_style"]],
                                         pitch_factor=st.session_state["app"]["fc"]["phone"]["p"], 
                                         dur_factor=st.session_state["app"]["fc"]["phone"]["d"], 
                                         energy_factor=st.session_state["app"]["fc"]["phone"]["e"],

@@ -1,7 +1,17 @@
-daft_config_path: "/work/tc046/tc046/lordzuko/work/speech-editor/conf/daft_config.json"
-vocoder_config_path: "/work/tc046/tc046/lordzuko/work/speech-editor/conf/vocoder_config.json"
-daft_chkpt_path: "/work/tc046/tc046/lordzuko/work/speech-editor/assets/models/DaftExprt_best"
-vocoder_chkpt_path: "/work/tc046/tc046/lordzuko/work/speech-editor/assets/models/g_00100000"
+daft_config_path: "/home/lordzuko/work/speech-editor/conf/daft_config.json"
+vocoder_config_path: "/home/lordzuko/work/speech-editor/conf/vocoder_config.json"
+daft_chkpt_path: "/home/lordzuko/work/speech-editor/assets/models/DaftExprt_best"
+vocoder_chkpt_path: "/home/lordzuko/work/speech-editor/assets/models/g_00100000"
 stats:
-    phone_stats: "/work/tc046/tc046/lordzuko/work/speech-editor/assets/stats/phone_stats.json"
-    global_stats: "/work/tc046/tc046/lordzuko/work/speech-editor/assets/stats/global_stats.json"
+    phone_stats: "/home/lordzuko/work/speech-editor/assets/stats/phone_stats.json"
+    global_stats: "/home/lordzuko/work/speech-editor/assets/stats/global_stats.json"
+save:
+    unedited: "/home/lordzuko/work/speech-editor/data/unedited"
+    edited: "/home/lordzuko/work/speech-editor/data/edited"
+ref_style:
+    fast_speech: "/home/lordzuko/work/speech-editor/assets/ref_style/CB-EM-04-96.wav"
+    slow_speech: ""
+    happy_speech: ""
+    sad_speech: ""
+    angry_speech: ""
+    neutral_speech: ""
