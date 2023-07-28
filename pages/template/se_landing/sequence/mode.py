@@ -5,6 +5,7 @@ import numpy as np
 from datetime import datetime
 from mongoengine.queryset.visitor import Q
 from scipy.io import wavfile
+import traceback
 
 from daft_exprt.synthesize import prepare_sentences_for_inference
 from config import hparams, dictionary, edited_path
@@ -14,7 +15,7 @@ from utils.db import handle_submit
 from .data import setup_data
 from .slider import setup_sliders
 from .edits import setup_speech_unedited, setup_ref_speech
-from ..utils import reset_sequence, save
+from ..utils import reset_sequence, save, autoplay_audio
 
 def se_edit_sequence():
     """
@@ -60,27 +61,16 @@ def se_edit_sequence():
             col1, col2, col3 = st.columns([1, 1, 1])
             with col1:
                 setup_ref_speech()
+
             with col2:
-                setup_speech_unedited()
+                setup_speech_unedited(col3)
 
             if st.session_state["app"]["suggestions"]:
                 if "unedited" in st.session_state["app"]:
                     if "wav" in st.session_state["app"]["unedited"]:
                         setup_sliders(column=col3)
-
             
             st.markdown("---")
-            # c1, _ = st.columns([1, 1])
-            
-            # with c1:
-            #     next_bt = st.button("Next")
-            #     if next_bt:
-            #         st.info("Saving to DB")
-            #         save()
-            #         print("save value: ", handle_submit())
-                    
-            #         st.success("Saved!")
-            #         reset_sequence()
             with st.form(key=f"form-next-button"):
                 is_better = st.radio(
                     "Do you think the edited speech sounds better than the synthesized speech?",
@@ -94,8 +84,10 @@ def se_edit_sequence():
                     
                     st.success("Saved!")
                     reset_sequence()
-
-
-    except IndexError:
+        # autoplay_audio()
+        
+    except IndexError as e:
+        
+        traceback.print_exc()
         st.success("Editing experiment completed. Thanks for your time!")
                                     

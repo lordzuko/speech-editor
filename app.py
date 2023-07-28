@@ -7,7 +7,6 @@ from pages.template.login import login_screen
 from utils.session import init_session_state, get_state
 from config import DEBUG
 from utils.db import db_init
-
 from pages.template.se_landing import se_ui
 
 st.set_page_config(
@@ -28,6 +27,7 @@ def main():
     # if DEBUG:
     #     se_ui()
     # else:
+
     login_screen()
 
 

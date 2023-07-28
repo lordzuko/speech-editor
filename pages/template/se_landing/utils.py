@@ -2,12 +2,41 @@ import streamlit as st
 import base64
 
 from utils.audio import save_audio
+from streamlit.components.v1 import html
+# def autoplay_audio():
+#     print("autoplayig!!!")
+#     b64 = base64.b64encode(st.session_state["app"]["edited"]["wav"]).decode('utf-8')
+#     audio_tag = f'<audio autoplay="true" src="data:audio/wav;base64,{b64}">'
+#     st.write(audio_tag, unsafe_allow_html=True)
 
 def autoplay_audio():
-    print("autoplayig!!!")
-    b64 = base64.b64encode(st.session_state["app"]["edited"]["wav"]).decode('utf-8')
-    audio_tag = f'<audio autoplay="true" src="data:audio/wav;base64,{b64}">'
-    st.markdown(audio_tag, unsafe_allow_html=True)
+    js = """
+    <script>
+        var audio = window.parent.document.querySelectorAll('.stAudio')[2]
+
+        var editButtons = window.parent.document.querySelectorAll('.e1ewe7hr5');
+    
+        editButtons.forEach((el => el.addEventListener('click', function(){
+            setTimeout(function () {
+                audio.play();
+            }, 2000);
+        }, true)));
+        
+        var uttLevelButton = window.parent.document.querySelectorAll('.e1ewe7hr5')[1];
+
+        window.parent.document.onkeyup = function(e) {
+            if (e.which == 13) {
+                console.log('trigger');
+                uttLevelButton.click();
+            }};
+        
+    </script>
+    """
+    # st.markdown(js, unsafe_allow_html=True)
+    # ret_val = st_javascript(js)
+    # print("JS: RETURN:", ret_val)
+    # st.markdown(js, unsafe_allow_html=True)
+    html(js, height=1)
 
 def save():
     """

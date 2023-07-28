@@ -158,6 +158,8 @@ def init_stats():
         "e": np.ones((1,len(st.session_state["app"]["p"]))),
         "d": np.ones((1,len(st.session_state["app"]["p"])))
     }
+    st.session_state["app"]["temp"] = np.ones((1,len(st.session_state["app"]["p"])))
+
     st.session_state["app"]["fc"]["word"] = {
         "p": np.ones((1,len(st.session_state["app"]["w"]))),
         "e": np.ones((1,len(st.session_state["app"]["w"]))),
