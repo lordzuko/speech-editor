@@ -26,8 +26,9 @@ def se_edit_sequence():
     if st.button("Made a mistake reset?"):
         reset_sequence()
 
-    st.session_state["app"]["data"]["t"] = dict(Text.objects(Q(wav_name__nin = st.session_state["processed_wav"]) &
-                                                            Q(utt_len__lte=8))[0].to_mongo())
+    # st.session_state["app"]["data"]["t"] = dict(Text.objects(Q(wav_name__nin = st.session_state["processed_wav"]) &
+    #                                                         Q(utt_len__lte=8))[0].to_mongo())
+    st.session_state["app"]["data"]["t"] = dict(Text.objects(wav_name__nin = st.session_state["processed_wav"])[0].to_mongo())
     
     st.session_state["app"]["text"] = st.session_state["app"]["data"]["t"]["text"]
     st.session_state["app"]["wav_name"] = st.session_state['app']['data']['t']['wav_name']

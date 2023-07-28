@@ -46,8 +46,8 @@ def setup_bias_slider(column):
             gl_e = st.slider("Global Energy",
                                 # value=0.,
                                 value=float(st.session_state["app"]["fc"]["gl_e"]) if st.session_state["app"]["num_edits"] else 0.,
-                                min_value=-1.,
-                                max_value=1., 
+                                min_value=-.25,
+                                max_value=0.25, 
                                 step=0.01,
                                 key=f"energy-global")
             
