@@ -46,8 +46,8 @@ def setup_bias_slider(column):
             gl_e = st.slider("Global Energy",
                                 # value=0.,
                                 value=float(st.session_state["app"]["fc"]["gl_e"]) if st.session_state["app"]["num_edits"] else 0.,
-                                min_value=-1.,
-                                max_value=1., 
+                                min_value=-.25,
+                                max_value=0.25, 
                                 step=0.01,
                                 key=f"energy-global")
             
@@ -104,17 +104,18 @@ def setup_sliders(column):
             with col2:
                 # d = st.session_state["app"]["fc"]["word"]["d"][0][idx]
                 
-                duration_control = st.slider("Duration Scale", 
-                    value=1., 
+                st.session_state["app"]["temp"][0][idx] = st.slider("Duration Scale", 
+                    # value=1., 
+                    value=float(st.session_state["app"]["temp"][0][idx]) if st.session_state["app"]["num_edits"] else 1.,
                     min_value=0.,  
                     max_value=2., 
                     help="multiplier for duration (0x - 2x)",
                     key=f"duration-{word}")
 
                 # duration_control = standardize(duration_control, STATS["gs"]["d"]["mean"],STATS["gs"]["d"]["std"])
-                st.session_state["app"]["fc"]["word"]["d"][0][idx] = st.session_state["app"]["unedited"]["word"]["d"][0][idx] * duration_control
+                st.session_state["app"]["fc"]["word"]["d"][0][idx] = st.session_state["app"]["unedited"]["word"]["d"][0][idx] * st.session_state["app"]["temp"][0][idx]
                 if DEBUG:
-                    st.markdown(duration_control)
+                    st.markdown(st.session_state["app"]["temp"][0][idx])
                 
             with col3:
                 p = st.session_state["app"]["fc"]["word"]["p"][0][idx]

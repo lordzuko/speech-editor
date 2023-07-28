@@ -16,7 +16,7 @@ def setup_ref_speech():
     wav = rescale_wav_to_float32(wav)
     st.audio(wav, sample_rate=st.session_state["sampling_rate"])
 
-def setup_speech_unedited():
+def setup_speech_unedited(col3):
     """
     Handle unedited speech which works as reference
     """
@@ -25,14 +25,20 @@ def setup_speech_unedited():
         wavdata = process_unedited()
         
         st.session_state["app"]["unedited"]["wav"] = wavdata
-        st.markdown("Original:")
+        st.markdown("Synthesized:")
         st.audio(st.session_state["app"]["unedited"]["wav"],
                     sample_rate=st.session_state["sampling_rate"])
+        with col3:
+            st.markdown("Edited:")
+            st.audio(st.session_state["app"]["unedited"]["wav"],
+                    sample_rate=st.session_state["sampling_rate"])
+            autoplay_audio()
         # SAVE FILE
         save()
         
+        
     else:
-        st.markdown("Original:")
+        st.markdown("Synthesized:")
         st.audio(st.session_state["app"]["unedited"]["wav"],
                             sample_rate=st.session_state["sampling_rate"])
         
@@ -57,4 +63,4 @@ def setup_speech_edited():
     st.session_state["app"]["edited"]["wav"] = wavdata
     st.audio(st.session_state["app"]["edited"]["wav"],
                 sample_rate=st.session_state["sampling_rate"])
-    # autoplay_audio()
+    autoplay_audio()

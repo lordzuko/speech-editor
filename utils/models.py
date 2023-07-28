@@ -72,7 +72,7 @@ class Text(Document): # pylint-disable: too-few-public-methods
     wav_name = StringField(required=True)
     ref_style = StringField(required=True)
     text = StringField(required=True)
-    utt_len = IntField(required=True)
+    # utt_len = IntField(required=True)
     
 
 

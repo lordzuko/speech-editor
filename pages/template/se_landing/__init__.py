@@ -44,6 +44,7 @@ def se_ui():
         else:
             if not st.session_state.get("processed_wav"):
                 st.session_state["processed_wav"] = fetch_annotated(st.session_state["login"]["username"])
+                print("Processed: ", st.session_state["processed_wav"])
             if not st.session_state["app"].get("data"):
                 st.session_state["app"]["data"] = {}
             se_edit_sequence()
