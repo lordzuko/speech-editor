@@ -55,6 +55,8 @@ class Annotation(Document): # pylint-disable: too-few-public-methods
     i2w = DictField()
     w2p = DictField()
     save_wav_name = StringField()
+    num_edits = IntField()
+    editing_time_secs = IntField()
     created_at = DateTimeField()
     tagging_status = StringField()
     tagger = StringField(default="")

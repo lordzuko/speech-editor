@@ -6,8 +6,8 @@ import librosa
 from config import ref_style, unedited_path
 from .data import process_unedited, process_edited
 from daft_exprt.extract_features import rescale_wav_to_float32
-from scipy.io import wavfile
-
+from ..utils import save
+from ..utils import autoplay_audio
 
 def setup_ref_speech():
     st.markdown("Reference Audio:")
@@ -29,8 +29,7 @@ def setup_speech_unedited():
         st.audio(st.session_state["app"]["unedited"]["wav"],
                     sample_rate=st.session_state["sampling_rate"])
         # SAVE FILE
-        filename = st.session_state["app"]["save_wav_name"]
-        wavfile.write(f"{os.path.join(unedited_path, filename)}", st.session_state["sampling_rate"], wavdata)
+        save()
         
     else:
         st.markdown("Original:")
@@ -58,3 +57,4 @@ def setup_speech_edited():
     st.session_state["app"]["edited"]["wav"] = wavdata
     st.audio(st.session_state["app"]["edited"]["wav"],
                 sample_rate=st.session_state["sampling_rate"])
+    # autoplay_audio()

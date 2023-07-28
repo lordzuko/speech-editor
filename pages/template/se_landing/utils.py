@@ -1,24 +1,29 @@
 import streamlit as st
+import base64
 
 from utils.audio import save_audio
 
-def save(filename, username=""):
+def autoplay_audio():
+    print("autoplayig!!!")
+    b64 = base64.b64encode(st.session_state["app"]["edited"]["wav"]).decode('utf-8')
+    audio_tag = f'<audio autoplay="true" src="data:audio/wav;base64,{b64}">'
+    st.markdown(audio_tag, unsafe_allow_html=True)
+
+def save():
     """
     Save the synthesized utterances to disk and perform respective db operations
     """
+    # filename = st.session_state["app"]["save_wav_name"]
+    # wavdata = st.session_state["app"]["edited"]["wav"]
+    # wavfile.write(f"{os.path.join(edited_path, filename)}", st.session_state["sampling_rate"], wavdata)
     save_audio(st.session_state["app"]["unedited"]["wav"], 
                st.session_state["sampling_rate"], 
-               f"data/unedited/{filename}.wav")
-    if username:
-        if "edited" in st.session_state["app"]:
-            save_audio(st.session_state["app"]["edited"]["wav"], 
-                    st.session_state["sampling_rate"], 
-                    f"data/edited/{username}-{filename}.wav")
-    else:
-        if "edited" in st.session_state["app"]:
-            save_audio(st.session_state["app"]["edited"]["wav"], 
-                    st.session_state["sampling_rate"], 
-                    f"data/edited/{filename}.wav")
+               f"data/unedited/{st.session_state['app']['save_wav_name']}")
+    
+    if "edited" in st.session_state["app"]:
+        save_audio(st.session_state["app"]["edited"]["wav"], 
+                st.session_state["sampling_rate"], 
+                f"data/edited/{st.session_state['app']['save_wav_name']}")
     
 def reset():
     """

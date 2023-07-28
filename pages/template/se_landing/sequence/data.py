@@ -1,9 +1,6 @@
 import torch
 import numpy as np
-from pprint import pprint
-import json
 import streamlit as st
-from operator import itemgetter
 # from fs2.text import sequence_to_text_extended
 # from fs2.text import sequence_to_text
 # from fs2.controlled_synthesis import  preprocess_single, synthesize, preprocess_english
@@ -19,12 +16,6 @@ def setup_data(words, phones, idxs):
     """
     print("setup_data-text: ", list(st.session_state["app"]["phone_sents"]))
     print("ignore_idxs: ", st.session_state["app"]["ignore_idxs"])
-    # phones = sequence_to_text_extended(list(texts[0]))
-    # phones = sequence_to_text(list(texts[0]))
-    # print("setup_data-phones: ", phones)
-    # phones = phones.lstrip("{")
-    # phones = phones.rstrip("}")
-    # phones = phones.split(" ")
     
     st.session_state["app"]["p"] = phones
     print("setup_data-phones:", phones, len(phones))
@@ -102,6 +93,8 @@ def prepare_mask():
 
 def update_phone_variance():
 
+    zero_idxs = np.where(st.session_state["app"]["fc"]["phone"]["d"][0] == 0.)[0]
+    print("ZERO IDXS: ", zero_idxs)
     for i, _ in enumerate(st.session_state["app"]["w"]):
         d_mean = st.session_state["app"]["fc"]["word"]["d"][0][i]
         p_mean = st.session_state["app"]["fc"]["word"]["p"][0][i]
@@ -114,23 +107,33 @@ def update_phone_variance():
             val = p_mean/st.session_state["app"]["fc"]["scaling"]["p"][0][pi]
             st.session_state["app"]["fc"]["phone"]["p"][0][pi] = np.clip(val, a_min=STATS["ps"]["p"][phone]["-2s"], a_max=STATS["ps"]["p"][phone]["+2s"])
             val = e_mean/st.session_state["app"]["fc"]["scaling"]["e"][0][pi]
-            st.session_state["app"]["fc"]["phone"]["e"][0][pi] = np.clip(val, a_min=STATS["ps"]["e"][phone]["-2s"], a_max=STATS["ps"]["e"][phone]["+2s"])
-
+            st.session_state["app"]["fc"]["phone"]["e"][0][pi] = val #np.clip(val, a_min=STATS["ps"]["e"][phone]["-2s"], a_max=STATS["ps"]["e"][phone]["+2s"])
+    
+    st.session_state["app"]["fc"]["phone"]["e"][0][zero_idxs] = 0.
+    st.session_state["app"]["fc"]["phone"]["p"][0][zero_idxs] = 0.
 
 def process_edited():
 
     # update the phone variances based on the changes in word variances
+    st.session_state["app"]["num_edits"] += 1
     update_phone_variance()
     # if DEBUG:
     prepare_mask()
     
-    if DEBUG:    
-        print("\n")
-        print("Edited-FC-PHONE: ") 
-        for k, v in st.session_state["app"]["fc"]["phone"].items():
-            print(k, v)
-        print("\n")
-        print("-----------------------------")
+    # if DEBUG:    
+    print("\n")
+    print("UnEdited-FC-PHONE: ") 
+    for k, v in st.session_state["app"]["unedited"]["phone"].items():
+        print(k, v)
+    print("\n")
+    print("-----------------------------")
+
+    print("\n")
+    print("Edited-FC-PHONE: ") 
+    for k, v in st.session_state["app"]["fc"]["phone"].items():
+        print(k, v)
+    print("\n")
+    print("-----------------------------")
     
     control_values, wavdata = synthesize(st.session_state["model"], 
                                         st.session_state["vocoder"],

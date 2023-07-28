@@ -129,6 +129,10 @@ def handle_submit():
     annot["i2w"] = {str(k): v for k,v in st.session_state["app"]["i2w"].items()}
     annot["w2p"] = {str(k) : v for k,v in st.session_state["app"]["w2p"].items()}
     annot["save_wav_name"] = st.session_state["app"]["save_wav_name"]
+    annot["num_edits"] = st.session_state["app"]["num_edits"]
+    td = datetime.datetime.now() - st.session_state["app"]["edit_start"]
+    # td_mins = int(round(td.total_seconds() / 60
+    annot["editing_time_secs"] = td.total_seconds()
     annot["created_at"] = datetime.datetime.utcnow()
     annot["tagger"] = st.session_state["login"]["username"]
     annot["tagged_at"] = datetime.datetime.utcnow()
