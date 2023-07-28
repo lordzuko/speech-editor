@@ -133,6 +133,7 @@ def handle_submit():
     td = datetime.datetime.now() - st.session_state["app"]["edit_start"]
     # td_mins = int(round(td.total_seconds() / 60
     annot["editing_time_secs"] = td.total_seconds()
+    annot["is_better"] = st.session_state["app"]["is_better"]
     annot["created_at"] = datetime.datetime.utcnow()
     annot["tagger"] = st.session_state["login"]["username"]
     annot["tagged_at"] = datetime.datetime.utcnow()

@@ -57,6 +57,7 @@ class Annotation(Document): # pylint-disable: too-few-public-methods
     save_wav_name = StringField()
     num_edits = IntField()
     editing_time_secs = IntField()
+    is_better = StringField()
     created_at = DateTimeField()
     tagging_status = StringField()
     tagger = StringField(default="")
