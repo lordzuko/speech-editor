@@ -2,6 +2,7 @@ import os
 import uuid
 import streamlit as st
 import numpy as np
+from datetime import datetime
 from mongoengine.queryset.visitor import Q
 from scipy.io import wavfile
 
@@ -45,6 +46,9 @@ def se_edit_sequence():
 
             print("TEXTS: ",st.session_state["app"]["phone_sents"])
             setup_data(words, phones, idxs)
+            st.session_state["app"]["num_edits"] = 0
+            st.session_state["app"]["edit_start"] = datetime.now()
+
         st.markdown(f"#### Text: {st.session_state['app']['text']}")
         st.markdown(f"##### Filename: {st.session_state['app']['data']['t']['wav_name']}")
         
@@ -65,20 +69,31 @@ def se_edit_sequence():
 
         
         st.markdown("---")
-        c1, _ = st.columns([1, 1])
+        # c1, _ = st.columns([1, 1])
         
-        with c1:
-            next_bt = st.button("Next")
-            if next_bt:
+        # with c1:
+        #     next_bt = st.button("Next")
+        #     if next_bt:
+        #         st.info("Saving to DB")
+        #         save()
+        #         print("save value: ", handle_submit())
+                
+        #         st.success("Saved!")
+        #         reset_sequence()
+        with st.form(key=f"form-next-button"):
+            is_better = st.radio(
+                "Do you think the edited speech sounds better than the synthesized speech?",
+                ('Yes', 'No', 'Maybe'), horizontal=True)
+            st.session_state["app"]["is_better"] = is_better
+            submitted = st.form_submit_button(f"Next")
+            if submitted:
                 st.info("Saving to DB")
-                # save(st.session_state["app"]["wav_name"], username=st.session_state["login"]["username"])
+                save()
                 print("save value: ", handle_submit())
-                # SAVE FILE
-                filename = st.session_state["app"]["save_wav_name"]
-                wavdata = st.session_state["app"]["edited"]["wav"]
-                wavfile.write(f"{os.path.join(edited_path, filename)}", st.session_state["sampling_rate"], wavdata)
+                
                 st.success("Saved!")
                 reset_sequence()
+
 
     # except IndexError:
     #     st.success("No new items in DB")

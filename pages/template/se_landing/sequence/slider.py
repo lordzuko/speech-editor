@@ -5,7 +5,6 @@ from .data import sample_gauss, standardize
 from .edits import setup_speech_edited
 from config import DEBUG, STATS, ignore_chars
 
-
 def process_pitch_value(p_orig, p_change):
     
     p_int = np.exp(sample_gauss(p_orig, STATS["gs"]["p"]["mean"],STATS["gs"]["p"]["std"]))
@@ -25,25 +24,28 @@ def process_energy_value(e_orig, e_change):
 
 def setup_bias_slider(column):
     with st.form(key=f"form-global"):
-        col1, col2, col3, col4 = st.columns([2, 2, 2, 2])
+        col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
         
 
         with col2:
             gl_d = st.slider("Global Duration",
-                                value=1.,
+                                # value=1.,
+                                value=float(st.session_state["app"]["fc"]["gl_d"]) if st.session_state["app"]["num_edits"] else 1.,
                                 min_value=0.,
                                 max_value=2.,
                                 key=f"duration-global")
         with col3:
             gl_p = st.slider("Global Pitch",
-                                value=0,
+                                # value=0,
+                                value=int(st.session_state["app"]["fc"]["gl_p"]) if st.session_state["app"]["num_edits"] else 0,
                                 min_value=-50,
                                 max_value=50,
                                 step=1,
                                 key=f"pitch-global")
         with col4:
             gl_e = st.slider("Global Energy",
-                                value=0.,
+                                # value=0.,
+                                value=float(st.session_state["app"]["fc"]["gl_e"]) if st.session_state["app"]["num_edits"] else 0.,
                                 min_value=-1.,
                                 max_value=1., 
                                 step=0.01,
@@ -100,7 +102,7 @@ def setup_sliders(column):
             col1, col2, col3, col4 = st.columns([2, 2, 2, 2])
 
             with col2:
-                d = st.session_state["app"]["fc"]["word"]["d"][0][idx]
+                # d = st.session_state["app"]["fc"]["word"]["d"][0][idx]
                 
                 duration_control = st.slider("Duration Scale", 
                     value=1., 
@@ -133,7 +135,7 @@ def setup_sliders(column):
                     value=float(sample_gauss(e, STATS["gs"]["e"]["mean"],STATS["gs"]["e"]["std"])), 
                     min_value=0., 
                     max_value=float(round(sample_gauss(1.5, STATS["gs"]["e"]["mean"],STATS["gs"]["e"]["std"]))),
-                    step=1.,
+                    step=0.01,
                     key=f"energy-{word}")
                 energy_control = standardize(energy_control, STATS["gs"]["e"]["mean"],STATS["gs"]["e"]["std"])
                 if DEBUG:
