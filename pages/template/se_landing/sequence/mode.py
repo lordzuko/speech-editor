@@ -22,80 +22,80 @@ def se_edit_sequence():
     """
 
     
-    # try:
-    if st.button("Made a mistake reset?"):
-        reset_sequence()
+    try:
+        if st.button("Made a mistake reset?"):
+            reset_sequence()
 
-    # st.session_state["app"]["data"]["t"] = dict(Text.objects(Q(wav_name__nin = st.session_state["processed_wav"]) &
-    #                                                         Q(utt_len__lte=8))[0].to_mongo())
-    st.session_state["app"]["data"]["t"] = dict(Text.objects(wav_name__nin = st.session_state["processed_wav"])[0].to_mongo())
-    
-    st.session_state["app"]["text"] = st.session_state["app"]["data"]["t"]["text"]
-    st.session_state["app"]["wav_name"] = st.session_state['app']['data']['t']['wav_name']
-    if not st.session_state["app"].get("save_wav_name"):
-        st.session_state["app"]["save_wav_name"] = str(uuid.uuid4()) + ".wav"
-    st.session_state["app"]["edit_next"] = False
-    text = st.session_state["app"]["text"]
-
-    if not st.session_state["app"]["edit_next"]:
-        # out = preprocess_english(text,lexicon, g2p, preprocess_config)
-        if not st.session_state["app"].get("phone_sents"):
-            print("PREPARING SENTENCES:")
-            out = prepare_sentences_for_inference([text], dictionary, hparams)
-
-            st.session_state["app"]["phone_sents"], words, phones, idxs, st.session_state["app"]["ignore_idxs"] = [out[0][0]], out[0][1], out[0][2], out[0][3], out[0][4]
-
-            print("TEXTS: ",st.session_state["app"]["phone_sents"])
-            setup_data(words, phones, idxs)
-            st.session_state["app"]["num_edits"] = 0
-            st.session_state["app"]["edit_start"] = datetime.now()
-
-        st.markdown(f"#### Text: {st.session_state['app']['text']}")
-        st.markdown(f"##### Filename: {st.session_state['app']['data']['t']['wav_name']}")
+        # st.session_state["app"]["data"]["t"] = dict(Text.objects(Q(wav_name__nin = st.session_state["processed_wav"]) &
+        #                                                         Q(utt_len__lte=8))[0].to_mongo())
+        st.session_state["app"]["data"]["t"] = dict(Text.objects(wav_name__nin = st.session_state["processed_wav"])[0].to_mongo())
         
-        if not st.session_state["app"].get("suggestions"):
-            suggestions = [f"{w}-{i}" for i,w in enumerate(st.session_state["app"]["w"])]
-            st.session_state["app"]["suggestions"] = suggestions
-        
-        col1, col2, col3 = st.columns([1, 1, 1])
-        with col1:
-            setup_ref_speech()
-        with col2:
-            setup_speech_unedited()
+        st.session_state["app"]["text"] = st.session_state["app"]["data"]["t"]["text"]
+        st.session_state["app"]["wav_name"] = st.session_state['app']['data']['t']['wav_name']
+        if not st.session_state["app"].get("save_wav_name"):
+            st.session_state["app"]["save_wav_name"] = str(uuid.uuid4()) + ".wav"
+        st.session_state["app"]["edit_next"] = False
+        text = st.session_state["app"]["text"]
 
-        if st.session_state["app"]["suggestions"]:
-            if "unedited" in st.session_state["app"]:
-                if "wav" in st.session_state["app"]["unedited"]:
-                    setup_sliders(column=col3)
+        if not st.session_state["app"]["edit_next"]:
+            # out = preprocess_english(text,lexicon, g2p, preprocess_config)
+            if not st.session_state["app"].get("phone_sents"):
+                print("PREPARING SENTENCES:")
+                out = prepare_sentences_for_inference([text], dictionary, hparams)
 
-        
-        st.markdown("---")
-        # c1, _ = st.columns([1, 1])
-        
-        # with c1:
-        #     next_bt = st.button("Next")
-        #     if next_bt:
-        #         st.info("Saving to DB")
-        #         save()
-        #         print("save value: ", handle_submit())
-                
-        #         st.success("Saved!")
-        #         reset_sequence()
-        with st.form(key=f"form-next-button"):
-            is_better = st.radio(
-                "Do you think the edited speech sounds better than the synthesized speech?",
-                ('Yes', 'No', 'Maybe'), horizontal=True)
-            st.session_state["app"]["is_better"] = is_better
-            submitted = st.form_submit_button(f"Next")
-            if submitted:
-                st.info("Saving to DB")
-                save()
-                print("save value: ", handle_submit())
-                
-                st.success("Saved!")
-                reset_sequence()
+                st.session_state["app"]["phone_sents"], words, phones, idxs, st.session_state["app"]["ignore_idxs"] = [out[0][0]], out[0][1], out[0][2], out[0][3], out[0][4]
+
+                print("TEXTS: ",st.session_state["app"]["phone_sents"])
+                setup_data(words, phones, idxs)
+                st.session_state["app"]["num_edits"] = 0
+                st.session_state["app"]["edit_start"] = datetime.now()
+
+            st.markdown(f"#### Text: {st.session_state['app']['text']}")
+            st.markdown(f"##### Filename: {st.session_state['app']['data']['t']['wav_name']}")
+            
+            if not st.session_state["app"].get("suggestions"):
+                suggestions = [f"{w}-{i}" for i,w in enumerate(st.session_state["app"]["w"])]
+                st.session_state["app"]["suggestions"] = suggestions
+            
+            col1, col2, col3 = st.columns([1, 1, 1])
+            with col1:
+                setup_ref_speech()
+            with col2:
+                setup_speech_unedited()
+
+            if st.session_state["app"]["suggestions"]:
+                if "unedited" in st.session_state["app"]:
+                    if "wav" in st.session_state["app"]["unedited"]:
+                        setup_sliders(column=col3)
+
+            
+            st.markdown("---")
+            # c1, _ = st.columns([1, 1])
+            
+            # with c1:
+            #     next_bt = st.button("Next")
+            #     if next_bt:
+            #         st.info("Saving to DB")
+            #         save()
+            #         print("save value: ", handle_submit())
+                    
+            #         st.success("Saved!")
+            #         reset_sequence()
+            with st.form(key=f"form-next-button"):
+                is_better = st.radio(
+                    "Do you think the edited speech sounds better than the synthesized speech?",
+                    ('Yes', 'No', 'Maybe'), horizontal=True)
+                st.session_state["app"]["is_better"] = is_better
+                submitted = st.form_submit_button(f"Next")
+                if submitted:
+                    st.info("Saving to DB")
+                    save()
+                    print("save value: ", handle_submit())
+                    
+                    st.success("Saved!")
+                    reset_sequence()
 
 
-    # except IndexError:
-    #     st.success("No new items in DB")
+    except IndexError:
+        st.success("Editing experiment completed. Thanks for your time!")
                                     

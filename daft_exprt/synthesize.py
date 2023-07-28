@@ -417,7 +417,7 @@ def collate_tensors(batch_sentences, batch_dur_factors, batch_energy_factors,
 def to_gpu(symbols, dur_factors, energy_factors, pitch_factors, input_lengths, 
            energy_refs, pitch_refs, mel_spec_refs, ref_lengths, speaker_ids):
     # put tensors on GPU
-    gpu = next(model.parameters()).device
+    gpu = "cuda:0"
     symbols = symbols.cuda(gpu, non_blocking=True).long()  # (B, L_max)
     dur_factors = dur_factors.cuda(gpu, non_blocking=True).float()  # (B, L_max)
     energy_factors = energy_factors.cuda(gpu, non_blocking=True).float()  # (B, L_max)
