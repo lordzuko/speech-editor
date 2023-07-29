@@ -24,7 +24,7 @@ def process_energy_value(e_orig, e_change):
 
 def setup_bias_slider(column):
     with st.form(key=f"form-global"):
-        col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
+        col1, col2, col3, col4 = st.columns([1, 1.5, 2, 1])
         
 
         with col2:
@@ -99,7 +99,7 @@ def setup_sliders(column):
             idx = int(word.split("-")[-1])
             if w in ignore_chars:
                 continue
-            col1, col2, col3, col4 = st.columns([2, 2, 2, 2])
+            col1, col2, col3, col4 = st.columns([1, 1.5, 2, 1])
 
             with col2:
                 # d = st.session_state["app"]["fc"]["word"]["d"][0][idx]

@@ -105,9 +105,9 @@ def update_phone_variance():
             phone = st.session_state["app"]["i2p"][pi]
             st.session_state["app"]["fc"]["phone"]["d"][0][pi] = val # np.clip(val, a_min=STATS["ps"]["d"][phone]["-2s"], a_max=STATS["ps"]["d"][phone]["+2s"])
             val = p_mean/st.session_state["app"]["fc"]["scaling"]["p"][0][pi]
-            st.session_state["app"]["fc"]["phone"]["p"][0][pi] = np.clip(val, a_min=STATS["ps"]["p"][phone]["-2s"], a_max=STATS["ps"]["p"][phone]["+2s"])
+            st.session_state["app"]["fc"]["phone"]["p"][0][pi] = val #np.clip(val, a_min=STATS["ps"]["p"][phone]["-2s"], a_max=STATS["ps"]["p"][phone]["+2s"])
             val = e_mean/st.session_state["app"]["fc"]["scaling"]["e"][0][pi]
-            st.session_state["app"]["fc"]["phone"]["e"][0][pi] = np.clip(val, a_min=STATS["ps"]["e"][phone]["-2s"], a_max=STATS["ps"]["e"][phone]["+2s"])
+            st.session_state["app"]["fc"]["phone"]["e"][0][pi] = val #np.clip(val, a_min=STATS["ps"]["e"][phone]["-2s"], a_max=STATS["ps"]["e"][phone]["+2s"])
     
     st.session_state["app"]["fc"]["phone"]["e"][0][zero_idxs] = 0.
     st.session_state["app"]["fc"]["phone"]["p"][0][zero_idxs] = 0.
