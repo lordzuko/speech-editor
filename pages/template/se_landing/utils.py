@@ -3,6 +3,7 @@ import base64
 
 from utils.audio import save_audio
 from streamlit.components.v1 import html
+from pathlib import Path
 # def autoplay_audio():
 #     print("autoplayig!!!")
 #     b64 = base64.b64encode(st.session_state["app"]["edited"]["wav"]).decode('utf-8')
@@ -45,14 +46,21 @@ def save():
     # filename = st.session_state["app"]["save_wav_name"]
     # wavdata = st.session_state["app"]["edited"]["wav"]
     # wavfile.write(f"{os.path.join(edited_path, filename)}", st.session_state["sampling_rate"], wavdata)
+    username = st.session_state["login"]["username"]
+    unedited = f"data/{username}/unedited/"
+    edited = f"data/{username}/edited/"
+
+    Path(unedited).mkdir(parents=True, exist_ok=True)
+    Path(edited).mkdir(parents=True, exist_ok=True)
+
     save_audio(st.session_state["app"]["unedited"]["wav"], 
                st.session_state["sampling_rate"], 
-               f"data/unedited/{st.session_state['app']['save_wav_name']}")
+               f"{unedited}/{st.session_state['app']['save_wav_name']}")
     
     if "edited" in st.session_state["app"]:
         save_audio(st.session_state["app"]["edited"]["wav"], 
                 st.session_state["sampling_rate"], 
-                f"data/edited/{st.session_state['app']['save_wav_name']}")
+                f"{edited}/{st.session_state['app']['save_wav_name']}")
     
 def reset():
     """
